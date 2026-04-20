@@ -1,0 +1,2127 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Diagnóstico Integral 2026 — Complejo Educacional Maipú</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+:root{--bg:#0a0e1a;--surface:#111827;--surface2:#1a2236;--border:#1e2d45;--text:#e8edf5;--muted:#6b7fa3;--lectura:#38bdf8;--lectura-dim:#0c2d42;--mat:#f59e0b;--mat-dim:#3d2800;--alto:#10b981;--bajo:#ef4444;--hc:#a78bfa;--hc-dim:#2d1b5e;--accent:#38bdf8;--r:12px}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;max-width:100%;overflow-x:hidden}
+body{background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;min-height:100vh}
+.header{background:linear-gradient(135deg,#0d1829 0%,#0a1628 50%,#0d1520 100%);border-bottom:1px solid var(--border);padding:22px 40px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.header-left{display:flex;flex-direction:column;gap:4px}
+.school-tag{font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--accent);font-family:'JetBrains Mono',monospace}
+.header h1{font-size:21px;font-weight:800;color:var(--text);line-height:1.2}
+.header h1 span{color:var(--accent)}
+.header-meta{font-size:12px;color:var(--muted);margin-top:2px}
+.header-stats{display:flex;gap:20px}
+.hstat{text-align:center}
+.hstat-val{font-size:24px;font-weight:800;color:var(--accent);font-family:'JetBrains Mono',monospace;line-height:1}
+.hstat-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:4px}
+.nav{display:grid;grid-template-columns:repeat(auto-fit,minmax(106px,1fr));gap:6px;padding:10px 40px 0;background:var(--surface);border-bottom:1px solid var(--border)}
+.tab{min-width:0;padding:8px 6px 10px;border-radius:10px 10px 0 0;font-size:11px;font-weight:700;cursor:pointer;border:1px solid transparent;border-bottom:none;color:var(--muted);transition:all .2s;background:transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;line-height:1.2}
+.tab-ico{font-size:16px;line-height:1}
+.tab-txt{white-space:normal}
+.tab:hover{color:var(--text);background:var(--surface2)}
+.tab.active{background:var(--bg);color:var(--text);border-color:var(--border)}
+.filters{display:flex;gap:10px;padding:14px 40px;background:var(--bg);border-bottom:1px solid var(--border);flex-wrap:wrap;align-items:center}
+.filter-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.filter-btn{padding:6px 13px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--muted);transition:all .2s;font-family:'Sora',sans-serif}
+.filter-btn:hover{border-color:var(--accent);color:var(--text)}
+.filter-btn.act{border-color:var(--accent);background:rgba(56,189,248,.15);color:var(--accent)}
+.logro-legend{display:flex;gap:10px;align-items:center;margin-left:auto}
+.filters-tools{display:flex;gap:8px;align-items:center}
+.filter-input{padding:6px 10px;border-radius:6px;font-size:12px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-family:'Sora',sans-serif;min-width:130px}
+.filter-input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(56,189,248,.12)}
+.tool-msg{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;min-width:130px}
+.simce-filter-row{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px}
+.simce-filter-btn{padding:7px 11px;border-radius:7px;border:1px solid var(--border);background:var(--surface2);color:#dbe7ff;font-size:12px;font-weight:700;cursor:pointer}
+.simce-filter-btn.active{border-color:var(--accent);background:rgba(56,189,248,.18);color:var(--accent)}
+.logro-badge{display:flex;flex-direction:column;align-items:flex-start;gap:3px;font-size:11px;font-weight:700;padding:6px 10px;border-radius:5px;font-family:'JetBrains Mono',monospace;letter-spacing:.4px}
+.logro-main{display:flex;align-items:center;gap:5px}
+.logro-color-name{font-size:10px;opacity:.9;letter-spacing:.2px}
+.logro-nl{background:rgba(239,68,68,.15);color:#ef4444;border:1px solid rgba(239,68,68,.3)}
+.logro-pl{background:rgba(245,158,11,.15);color:#f59e0b;border:1px solid rgba(245,158,11,.3)}
+.logro-l{background:rgba(16,185,129,.15);color:#10b981;border:1px solid rgba(16,185,129,.3)}
+.logro-dot{width:7px;height:7px;border-radius:50%}
+.dot-nl{background:#ef4444}.dot-pl{background:#f59e0b}.dot-l{background:#10b981}
+.chip-nl{background:rgba(239,68,68,.15);color:#ef4444;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700;font-family:'JetBrains Mono',monospace}
+.chip-pl{background:rgba(245,158,11,.15);color:#f59e0b;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700;font-family:'JetBrains Mono',monospace}
+.chip-l{background:rgba(16,185,129,.15);color:#10b981;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700;font-family:'JetBrains Mono',monospace}
+.main{padding:24px 40px}
+.main,.page,.charts-2col,.charts-3col,.chart-full,.card,.curso-detail-grid,.kpi-grid,.kpi{min-width:0}
+.page{display:none}.page.active{display:block}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--accent-color,var(--accent))}
+.kpi-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.kpi-val{font-size:30px;font-weight:800;color:var(--text);font-family:'JetBrains Mono',monospace;line-height:1}
+.kpi-val span{font-size:15px;font-weight:400;color:var(--muted)}
+.kpi-sub{font-size:12px;color:var(--muted);margin-top:5px}
+.charts-2col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px}
+.charts-3col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:18px}
+.charts-2col>*,.charts-3col>*{min-width:0}
+.chart-full{margin-bottom:18px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px;overflow-x:auto}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.card-title{font-size:12px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.5px}
+.card-badge{font-size:10px;font-weight:600;padding:3px 8px;border-radius:4px;text-transform:uppercase;letter-spacing:1px;font-family:'JetBrains Mono',monospace}
+.badge-lectura{background:var(--lectura-dim);color:var(--lectura)}
+.badge-mat{background:var(--mat-dim);color:var(--mat)}
+.badge-ambas{background:rgba(56,189,248,.1);color:var(--accent)}
+canvas{display:block;width:100%!important;max-width:100%;height:auto!important;max-height:260px}
+.ranking-table{width:100%;border-collapse:collapse;font-size:13px}
+.ranking-table th{padding:7px 10px;text-align:left;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid var(--border);font-weight:600}
+.ranking-table td{padding:8px 10px;border-bottom:1px solid rgba(30,45,69,.5)}
+.ranking-table tr:last-child td{border-bottom:none}
+.ranking-table tr:hover td{background:var(--surface2)}
+.ranking-table tr{cursor:pointer}
+.rank-num{font-family:'JetBrains Mono',monospace;font-weight:600;color:var(--muted);font-size:11px}
+.rank-curso{font-weight:700}
+.rank-ciclo{font-size:10px;padding:2px 7px;border-radius:4px;font-weight:600}
+.ciclo-1{background:rgba(16,185,129,.15);color:#10b981}
+.ciclo-2{background:rgba(56,189,248,.15);color:var(--lectura)}
+.ciclo-em{background:var(--hc-dim);color:var(--hc)}
+.prom-bar-wrap{display:flex;align-items:center;gap:8px}
+.prom-bar-bg{flex:1;height:6px;background:var(--surface2);border-radius:3px;overflow:hidden}
+.prom-bar-fill{height:100%;border-radius:3px}
+.prom-val{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;min-width:44px;text-align:right}
+.brecha-grid{display:grid;gap:5px}
+.brecha-row{display:grid;grid-template-columns:80px 1fr 1fr 90px;gap:8px;align-items:center}
+.brecha-label{font-size:12px;font-weight:600}
+.brecha-bar-wrap{position:relative;height:20px;background:var(--surface2);border-radius:4px;overflow:hidden}
+.brecha-bar{position:absolute;top:0;height:100%;border-radius:4px;display:flex;align-items:center;padding:0 7px;font-size:10px;font-weight:700;font-family:'JetBrains Mono',monospace}
+.brecha-diff{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;text-align:right}
+.hab-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.hab-card{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;cursor:pointer;transition:border-color .2s}
+.hab-card:hover{border-color:var(--accent)}
+.hab-nivel{font-size:11px;font-weight:700;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px}
+.hab-item{margin-bottom:7px;cursor:pointer}
+.hab-item:hover .hab-name{color:var(--accent)}
+.hab-name{font-size:11px;color:var(--muted);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color .2s}
+.hab-bar-bg{height:5px;background:var(--surface);border-radius:3px;overflow:hidden}
+.hab-bar-fill{height:100%;border-radius:3px}
+.hab-pct{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;text-align:right;color:var(--text)}
+.curso-selector{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px}
+.curso-btn{padding:5px 11px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--muted);transition:all .2s;font-family:'Sora',sans-serif}
+.curso-btn:hover{border-color:var(--accent);color:var(--text)}
+.curso-btn.selected{border-color:var(--accent);background:rgba(56,189,248,.15);color:var(--accent)}
+.curso-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.section-title{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:12px;padding-bottom:7px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.section-title::before{content:'';display:block;width:3px;height:14px;background:var(--accent);border-radius:2px}
+.ejes-tabs{display:flex;flex-wrap:wrap;gap:8px}
+.eje-tab-btn{padding:7px 10px;border-radius:7px;border:1px solid #2c3a58;background:#0e1729;color:#d7e0ef;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;font-family:'Sora',sans-serif}
+.eje-tab-btn:hover{background:#1a2742;color:#fff;border-color:#4f77ba}
+.ejes-detalle-grid{display:flex;flex-direction:column;gap:14px}
+.eje-level-group{background:rgba(15,24,40,.55);border:1px solid var(--border);border-radius:11px;padding:10px}
+.eje-level-title{font-size:12px;font-weight:800;letter-spacing:.8px;color:#d8e7ff;margin-bottom:10px;text-transform:uppercase}
+.eje-level-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px}
+.eje-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px}
+.eje-nivel-label{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.eje-prom-big{font-family:'JetBrains Mono',monospace;font-size:30px;font-weight:800;line-height:1}
+.eje-nota{font-size:11px;color:var(--muted);margin:4px 0 8px}
+.eje-bar-wrap{height:7px;background:var(--surface2);border-radius:4px;overflow:hidden}
+.eje-bar-fill{height:100%;border-radius:4px}
+.eje-oa-list{display:flex;flex-wrap:wrap;gap:6px}
+.eje-oa-chip{font-size:10px;font-weight:700;padding:3px 7px;border-radius:6px;cursor:pointer;font-family:'JetBrains Mono',monospace}
+.eje-oa-chip:hover{outline:1px solid rgba(56,189,248,.5)}
+.prio-kpi-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.prio-kpi{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px}
+.prio-kpi-val{font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:800;line-height:1}
+.prio-kpi-label{font-size:12px;font-weight:700;margin-top:8px}
+.prio-kpi-sub{font-size:11px;margin-top:4px}
+.prio-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow-x:auto}
+.simce-kpi-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.simce-kpi{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px}
+.simce-kpi .val{font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:800}
+.simce-kpi .lbl{font-size:11px;color:var(--muted);margin-top:6px;text-transform:uppercase;letter-spacing:.7px}
+.simce-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
+.simce-level-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.simce-level-stack{display:flex;flex-direction:column;gap:10px;min-height:100%}
+.simce-level-card{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px}
+.simce-level-title{font-size:12px;font-weight:800;color:#e1ebff;margin-bottom:8px}
+.simce-mini-rows{display:flex;flex-direction:column;gap:6px}
+.simce-mini-rows .simce-mini-row{margin-bottom:0}
+.simce-mini-row{display:grid;grid-template-columns:86px 1fr 46px;align-items:center;gap:7px;margin-bottom:5px}
+.simce-mini-row .name{font-size:11px;color:var(--muted);font-weight:700}
+.simce-mini-row .val{font-size:11px;font-family:'JetBrains Mono',monospace;font-weight:700;text-align:right}
+.simce-mini-bar{height:6px;background:var(--surface);border-radius:3px;overflow:hidden}
+.simce-mini-fill{height:100%;border-radius:3px}
+.simce-level-stack.single{min-height:100%}
+.simce-level-stack.single .simce-level-card{flex:1;display:flex;flex-direction:column;min-height:0}
+.simce-level-stack.single .simce-mini-rows{flex:1;justify-content:space-around;min-height:0}
+.simce-fit-card{overflow:hidden !important}
+.simce-card-tools{display:flex;align-items:center;gap:8px}
+.simce-sort-btn{padding:5px 8px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:#d9e6ff;font-size:10px;font-weight:700;cursor:pointer;font-family:'Sora',sans-serif;text-transform:uppercase;letter-spacing:.5px}
+.simce-sort-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+/* ── PANEL CURRICULAR ── */
+.bc-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px}
+.bc-overlay.open{display:flex}
+.bc-panel{background:#111827;border:1px solid #1e2d45;border-radius:16px;width:min(640px,95vw);max-height:90vh;overflow-y:auto;padding:28px;position:relative;animation:slideUp .25s ease}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+.bc-close{position:absolute;top:16px;right:16px;background:var(--surface2);border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:13px;font-family:'Sora',sans-serif;font-weight:600;transition:all .2s}
+.bc-close:hover{color:var(--text);border-color:var(--accent)}
+.bc-tag{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;font-family:'JetBrains Mono',monospace;margin-bottom:8px}
+.bc-title{font-size:20px;font-weight:800;margin-bottom:4px}
+.bc-subtitle{font-size:13px;color:var(--muted);margin-bottom:20px}
+.bc-section{margin-bottom:18px}
+.bc-section-title{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--border)}
+.bc-desc{font-size:14px;color:var(--text);line-height:1.7}
+.bc-list{list-style:none;display:flex;flex-direction:column;gap:6px}
+.bc-list li{font-size:13px;color:var(--text);padding:6px 10px;background:var(--surface2);border-radius:6px;border-left:3px solid var(--accent)}
+.bc-diag{padding:14px 16px;border-radius:10px;display:flex;align-items:flex-start;gap:12px;margin-top:4px}
+.bc-diag-alto{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3)}
+.bc-diag-medio{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3)}
+.bc-diag-bajo{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3)}
+.bc-diag-icon{font-size:22px;line-height:1}
+.bc-diag-content{flex:1}
+.bc-diag-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;font-family:'JetBrains Mono',monospace;margin-bottom:4px}
+.bc-diag-alto .bc-diag-label{color:#10b981}
+.bc-diag-medio .bc-diag-label{color:#f59e0b}
+.bc-diag-bajo .bc-diag-label{color:#ef4444}
+.bc-diag-text{font-size:13px;color:var(--text);line-height:1.6}
+.bc-prom-bar{height:10px;background:var(--surface2);border-radius:5px;overflow:hidden;margin:8px 0 4px}
+.bc-prom-fill{height:100%;border-radius:5px;transition:width .8s ease}
+.bc-prom-meta{display:flex;justify-content:space-between;font-size:11px;font-family:'JetBrains Mono',monospace}
+.oa-clickable{cursor:pointer;padding:3px 6px;border-radius:4px;transition:background .15s;display:inline-block}
+.oa-clickable:hover{background:rgba(56,189,248,.15);color:var(--accent)}
+.insights-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.insight-box{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px}
+.insight-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
+.insight-list{display:flex;flex-direction:column;gap:7px}
+.insight-item{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px}
+.insight-item strong{font-size:12px}
+.insight-badge{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700}
+@media (max-width:1100px){
+  .header,.nav,.filters,.main{padding-left:20px;padding-right:20px}
+  .kpi-grid{grid-template-columns:repeat(2,1fr)}
+  .charts-2col,.curso-detail-grid{grid-template-columns:1fr}
+  .insights-grid{grid-template-columns:1fr}
+  .logro-legend{margin-left:0;width:100%}
+  .prio-kpi-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .simce-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .simce-detail-grid{grid-template-columns:1fr}
+  .eje-level-cards{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+  .card{padding:14px}
+}
+@media (max-width:760px){
+  .header{flex-direction:column;align-items:flex-start}
+  .header-stats{width:100%;justify-content:space-between}
+  .nav{grid-template-columns:repeat(auto-fit,minmax(86px,1fr));}
+  .filters{gap:7px}
+  .filters-tools{width:100%;flex-wrap:wrap}
+  .filter-input{flex:1;min-width:180px}
+  .tool-msg{min-width:0}
+  .kpi-grid{grid-template-columns:1fr}
+  .prio-kpi-grid,.simce-kpi-grid{grid-template-columns:1fr}
+  .tab{padding:8px 4px 9px;font-size:10px}
+  .tab-ico{font-size:15px}
+  .eje-level-cards{grid-template-columns:1fr}
+  .ranking-table th,.ranking-table td{padding:6px 7px}
+  .brecha-row{grid-template-columns:58px 1fr;grid-auto-rows:auto}
+  .brecha-row .brecha-bar-wrap:nth-child(3),.brecha-row .brecha-diff{grid-column:1 / -1}
+  .simce-mini-row{grid-template-columns:72px 1fr 44px}
+  .simce-card-tools{width:100%;justify-content:flex-end}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="school-tag">RBD 9959 · Diagnóstico Integral de Aprendizajes</div>
+    <h1>Complejo Educacional <span>Maipú</span></h1>
+    <div class="header-meta">Lectura &amp; Matemática · Año 2026 · Bases Curriculares MINEDUC</div>
+  </div>
+  <div class="header-stats">
+    <div class="hstat"><div class="hstat-val" id="stat-est">—</div><div class="hstat-label">Estudiantes</div></div>
+    <div class="hstat"><div class="hstat-val" id="stat-cur">—</div><div class="hstat-label">Cursos</div></div>
+    <div class="hstat"><div class="hstat-val" id="stat-lec">—</div><div class="hstat-label">Prom. Lectura</div></div>
+    <div class="hstat"><div class="hstat-val" id="stat-mat">—</div><div class="hstat-label">Prom. Mat.</div></div>
+  </div>
+</div>
+
+<div class="nav">
+  <button class="tab active" onclick="showPage('resumen')"><span class="tab-ico">📊</span><span class="tab-txt">Resumen</span></button>
+  <button class="tab" onclick="showPage('ranking')"><span class="tab-ico">🏆</span><span class="tab-txt">Ranking</span></button>
+  <button class="tab" onclick="showPage('brecha')"><span class="tab-ico">⚖️</span><span class="tab-txt">Brecha</span></button>
+  <button class="tab" onclick="showPage('habilidades')"><span class="tab-ico">🎯</span><span class="tab-txt">Habilidades OA</span></button>
+  <button class="tab" onclick="showPage('ejes')"><span class="tab-ico">📐</span><span class="tab-txt">Ejes Matemática</span></button>
+  <button class="tab" onclick="showPage('prioridades')"><span class="tab-ico">🎯</span><span class="tab-txt">Prioridades</span></button>
+  <button class="tab" onclick="showPage('simce')"><span class="tab-ico">🧪</span><span class="tab-txt">SIMCE 2026</span></button>
+  <button class="tab" onclick="showPage('detalle')"><span class="tab-ico">🔍</span><span class="tab-txt">Detalle por Curso</span></button>
+</div>
+
+<div class="filters">
+  <span class="filter-label">Ciclo:</span>
+  <button class="filter-btn act" id="f-todos" onclick="setFiltro('todos')">Todos</button>
+  <button class="filter-btn" id="f-1c" onclick="setFiltro('1° Ciclo')">1° Ciclo (2°–4°)</button>
+  <button class="filter-btn" id="f-2c" onclick="setFiltro('2° Ciclo')">2° Ciclo (5°–8°)</button>
+  <button class="filter-btn" id="f-em" onclick="setFiltro('Ens. Media')">Ens. Media (I°–II°)</button>
+  <div class="logro-legend">
+    <span class="logro-badge logro-nl"><span class="logro-main"><span class="logro-dot dot-nl"></span>NL &nbsp;1.0–3.9 (&lt;50%)</span><span class="logro-color-name">Color: Rojo</span></span>
+    <span class="logro-badge logro-pl"><span class="logro-main"><span class="logro-dot dot-pl"></span>PL &nbsp;4.0–4.9 (50–66%)</span><span class="logro-color-name">Color: Amarillo</span></span>
+    <span class="logro-badge logro-l"><span class="logro-main"><span class="logro-dot dot-l"></span>L &nbsp;&nbsp;5.0–7.0 (≥67%)</span><span class="logro-color-name">Color: Verde</span></span>
+  </div>
+  <div class="filters-tools">
+    <input id="course-search" class="filter-input" type="text" placeholder="Buscar curso (ej: 7°C)">
+    <button class="filter-btn" id="btn-go-course">Ir al curso</button>
+    <button class="filter-btn" id="btn-export-csv">Exportar CSV</button>
+    <button class="filter-btn" id="btn-export-png">Descargar gráficos PNG</button>
+    <button class="filter-btn" id="btn-export-svg">Descargar gráficos SVG</button>
+    <span class="tool-msg" id="tools-msg"></span>
+  </div>
+</div>
+
+<div class="main">
+
+<!-- RESUMEN -->
+<div id="page-resumen" class="page active">
+  <div class="kpi-grid">
+    <div class="kpi" style="--accent-color:var(--lectura)"><div class="kpi-label">Promedio Lectura</div><div class="kpi-val" id="k-pl">—<span>%</span></div><div class="kpi-sub" id="k-pl-sub">—</div></div>
+    <div class="kpi" style="--accent-color:var(--mat)"><div class="kpi-label">Promedio Matemática</div><div class="kpi-val" id="k-pm">—<span>%</span></div><div class="kpi-sub" id="k-pm-sub">—</div></div>
+    <div class="kpi" style="--accent-color:var(--alto)"><div class="kpi-label">Mejor Curso Lectura</div><div class="kpi-val" id="k-ml">—<span>%</span></div><div class="kpi-sub" id="k-ml-n">—</div></div>
+    <div class="kpi" style="--accent-color:var(--alto)"><div class="kpi-label">Mejor Curso Mat.</div><div class="kpi-val" id="k-mm">—<span>%</span></div><div class="kpi-sub" id="k-mm-n">—</div></div>
+  </div>
+  <div class="charts-2col">
+    <div class="card"><div class="card-header"><span class="card-title">Promedio por Nivel — Lectura</span><span class="card-badge badge-lectura">Lectura</span></div><canvas id="ch-ln"></canvas></div>
+    <div class="card"><div class="card-header"><span class="card-title">Promedio por Nivel — Matemática</span><span class="card-badge badge-mat">Matemática</span></div><canvas id="ch-mn"></canvas></div>
+  </div>
+  <div class="chart-full">
+    <div class="card"><div class="card-header"><span class="card-title">Comparativa todos los cursos</span><span class="card-badge badge-ambas">Lectura vs Matemática</span></div><canvas id="ch-comp" style="max-height:300px"></canvas></div>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Insights automáticos por filtro</span>
+      <span class="card-badge badge-ambas">Accionable</span>
+    </div>
+    <div id="insights-grid" class="insights-grid"></div>
+  </div>
+</div>
+
+<!-- RANKING -->
+<div id="page-ranking" class="page">
+  <div class="charts-2col" style="margin-bottom:20px">
+    <div class="card"><div class="card-header"><span class="card-title">Top 10 — Lectura</span><span class="card-badge badge-lectura">Lectura</span></div><table class="ranking-table" id="rt-lh"></table></div>
+    <div class="card"><div class="card-header"><span class="card-title">Top 10 — Matemática</span><span class="card-badge badge-mat">Matemática</span></div><table class="ranking-table" id="rt-mh"></table></div>
+  </div>
+  <div class="charts-2col">
+    <div class="card"><div class="card-header"><span class="card-title">Prioridad intervención — Lectura</span><span class="card-badge" style="background:rgba(239,68,68,.15);color:#ef4444">Menor logro</span></div><table class="ranking-table" id="rt-ll"></table></div>
+    <div class="card"><div class="card-header"><span class="card-title">Prioridad intervención — Matemática</span><span class="card-badge" style="background:rgba(239,68,68,.15);color:#ef4444">Menor logro</span></div><table class="ranking-table" id="rt-ml"></table></div>
+  </div>
+</div>
+
+<!-- BRECHA -->
+<div id="page-brecha" class="page">
+  <div class="charts-2col" style="margin-bottom:18px">
+    <div class="card"><div class="card-header"><span class="card-title">Brecha por nivel (L − M)</span><span class="card-badge badge-ambas">Diferencia %</span></div><canvas id="ch-bn"></canvas></div>
+    <div class="card"><div class="card-header"><span class="card-title">Dispersión Lectura vs Matemática</span><span class="card-badge badge-ambas">Scatter</span></div><canvas id="ch-sc"></canvas></div>
+  </div>
+  <div class="card">
+    <div class="card-header"><span class="card-title">Brecha por curso</span><span class="card-badge badge-ambas">Lectura — Matemática</span></div>
+    <div style="display:grid;grid-template-columns:80px 1fr 1fr 90px;gap:8px;padding:0 0 6px;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:600"><div>Curso</div><div>Lectura</div><div>Matemática</div><div style="text-align:right">Diferencia</div></div>
+    <div class="brecha-grid" id="brecha-cursos"></div>
+  </div>
+</div>
+
+<!-- HABILIDADES -->
+<div id="page-habilidades" class="page">
+  <div style="font-size:12px;color:var(--muted);margin-bottom:16px;background:var(--surface);border:1px solid var(--border);padding:10px 14px;border-radius:8px;display:flex;align-items:center;gap:8px">
+    <span>💡</span> Haz clic en cualquier <strong style="color:var(--lectura)">eje de Lectura</strong> o <strong style="color:var(--mat)">OA de Matemática</strong> para ver su descripción curricular según Bases Curriculares MINEDUC.
+  </div>
+  <div class="charts-2col" style="margin-bottom:18px">
+    <div class="card"><div class="card-header"><span class="card-title">Ejes Lectura — Promedio general</span><span class="card-badge badge-lectura">Lectura</span></div><canvas id="ch-el"></canvas></div>
+    <div class="card"><div class="card-header"><span class="card-title">Ejes Lectura — Por ciclo</span><span class="card-badge badge-lectura">Radar</span></div><canvas id="ch-er"></canvas></div>
+  </div>
+  <div class="card" style="margin-bottom:18px">
+    <div class="card-header"><span class="card-title">Ejes Lectura por nivel — clic para ver descripción BC</span><span class="card-badge badge-lectura">Localizar · Interpretar · Reflexionar</span></div>
+    <div class="hab-grid" id="hab-lec-grid"></div>
+  </div>
+  <div class="card">
+    <div class="card-header"><span class="card-title">OA Matemática por ciclo — clic en barra para ver descripción BC</span><span class="card-badge badge-mat">OA basal previo</span></div>
+    <canvas id="ch-oa" style="max-height:320px"></canvas>
+  </div>
+</div>
+
+<!-- DETALLE -->
+<div id="page-ejes" class="page">
+  <div style="font-size:12px;color:var(--muted);margin-bottom:16px;background:var(--surface);border:1px solid var(--border);padding:10px 14px;border-radius:8px;display:flex;align-items:center;gap:8px">
+    <span>💡</span> Filtra por eje temático. Haz clic en cualquier eje o celda para filtrar y focalizar el análisis.
+  </div>
+  <div class="section-title">Filtrar por eje</div>
+  <div class="ejes-tabs" id="ejes-tabs-btns" style="margin-bottom:20px"></div>
+  <div class="charts-2col" style="margin-bottom:20px">
+    <div class="card">
+      <div class="card-header"><span class="card-title">Logro por eje — Colegio</span><span class="card-badge badge-mat">Ranking</span></div>
+      <div id="ejes-ranking-global"></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-title">Ejes por ciclo</span><span class="card-badge badge-mat">Radar</span></div>
+      <canvas id="ch-ejes-radar" style="max-height:260px"></canvas>
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:20px">
+    <div class="card-header"><span class="card-title">Mejor y peor eje por nivel</span><span class="card-badge badge-mat">Por nivel</span></div>
+    <div id="ejes-por-nivel"></div>
+  </div>
+  <div class="card" style="margin-bottom:20px">
+    <div class="card-header"><span class="card-title" id="ejes-bar-title">Promedio por eje — todos los niveles</span><span class="card-badge badge-mat">Barras</span></div>
+    <canvas id="ch-ejes-barras" style="max-height:300px"></canvas>
+  </div>
+  <div class="section-title" id="ejes-detalle-title">Detalle por nivel y eje</div>
+  <div class="ejes-detalle-grid" id="ejes-detalle-grid"></div>
+</div>
+
+<!-- PRIORIDADES -->
+<div id="page-detalle" class="page">
+  <div style="font-size:12px;color:var(--muted);margin-bottom:14px;background:var(--surface);border:1px solid var(--border);padding:10px 14px;border-radius:8px;display:flex;align-items:center;gap:8px">
+    <span>💡</span> Haz clic en cualquier barra para ver la descripción curricular del eje o OA según Bases Curriculares MINEDUC.
+  </div>
+  <div class="section-title">Selecciona un curso — Lectura</div>
+  <div class="curso-selector" id="sel-lec"></div>
+  <div class="section-title" style="margin-top:16px">Selecciona un curso — Matemática</div>
+  <div class="curso-selector" id="sel-mat"></div>
+  <div class="curso-detail-grid" style="margin-top:18px">
+    <div class="card"><div class="card-header"><span class="card-title" id="dt-tl">—</span><span class="card-badge badge-lectura">Lectura</span></div><canvas id="ch-dl"></canvas></div>
+    <div class="card"><div class="card-header"><span class="card-title" id="dt-tm">—</span><span class="card-badge badge-mat">Matemática</span></div><canvas id="ch-dm"></canvas></div>
+  </div>
+</div>
+
+<!-- EJES MATEMÁTICA -->
+<div id="page-prioridades" class="page">
+  <div style="font-size:12px;color:var(--muted);margin-bottom:16px;background:var(--surface);border:1px solid var(--border);padding:10px 14px;border-radius:8px;display:flex;align-items:center;gap:8px">
+    <span>💡</span> Vista ejecutiva: distribución de estudiantes según nivel de logro por nivel de enseñanza. Identifica dónde concentrar la intervención.
+  </div>
+  <div id="prio-kpis" style="margin-bottom:20px"></div>
+  <div class="charts-2col" style="margin-bottom:20px">
+    <div class="card">
+      <div class="card-header"><span class="card-title">Distribución de estudiantes — Lectura</span><span class="card-badge badge-lectura">Lectura</span></div>
+      <canvas id="ch-prio-lec" style="max-height:300px"></canvas>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-title">Distribución de estudiantes — Matemática</span><span class="card-badge badge-mat">Matemática</span></div>
+      <canvas id="ch-prio-mat" style="max-height:300px"></canvas>
+    </div>
+  </div>
+  <div id="prio-tabla"></div>
+</div>
+
+<!-- SIMCE 2026 -->
+<div id="page-simce" class="page">
+  <div style="font-size:12px;color:var(--muted);margin-bottom:16px;background:var(--surface);border:1px solid var(--border);padding:10px 14px;border-radius:8px;display:flex;align-items:center;gap:8px">
+    <span>💡</span> Vista focalizada SIMCE 2026 para <strong>4° Básico</strong>, <strong>6° Básico</strong> y <strong>II Medio</strong>.
+  </div>
+  <div class="simce-filter-row">
+    <button class="simce-filter-btn active" id="sf-todos" onclick="setSimceFiltro('todos')">Todos los niveles SIMCE</button>
+    <button class="simce-filter-btn" id="sf-4" onclick="setSimceFiltro('4')">4° Básico</button>
+    <button class="simce-filter-btn" id="sf-6" onclick="setSimceFiltro('6')">6° Básico</button>
+    <button class="simce-filter-btn" id="sf-II" onclick="setSimceFiltro('II')">II Medio</button>
+  </div>
+  <div id="simce-kpis" class="simce-kpi-grid"></div>
+  <div class="charts-2col" style="margin-bottom:18px">
+    <div class="card"><div class="card-header"><span class="card-title">SIMCE 2026 — Lectura por curso</span><span class="card-badge badge-lectura">4° · 6° · II</span></div><canvas id="ch-simce-lec"></canvas></div>
+    <div class="card"><div class="card-header"><span class="card-title">SIMCE 2026 — Matemática por curso</span><span class="card-badge badge-mat">4° · 6° · II</span></div><canvas id="ch-simce-mat"></canvas></div>
+  </div>
+  <div class="simce-detail-grid">
+    <div class="card simce-fit-card">
+      <div class="card-header">
+        <span class="card-title">Ejes Lectura por nivel</span>
+        <div class="simce-card-tools">
+          <span class="card-badge badge-lectura">SIMCE</span>
+          <button id="btn-sort-simce-lectura" class="simce-sort-btn" onclick="toggleSimceLecturaSort()">Orden: Descendente</button>
+        </div>
+      </div>
+      <div id="simce-ejes-lectura" class="simce-level-grid simce-level-stack"></div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">OA Matemática por nivel</span>
+        <div class="simce-card-tools">
+          <span class="card-badge badge-mat">SIMCE</span>
+          <button id="btn-sort-simce-mat" class="simce-sort-btn" onclick="toggleSimceMatSort()">Orden: Descendente</button>
+        </div>
+      </div>
+      <div id="simce-oa-mat" class="simce-level-grid"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header"><span class="card-title">Detalle SIMCE 2026 por curso</span><span class="card-badge badge-ambas">Incluye docentes</span></div>
+    <div id="simce-tabla"></div>
+  </div>
+</div>
+</div><!-- /main -->
+
+<!-- PANEL CURRICULAR -->
+<div class="bc-overlay" id="bc-overlay" onclick="closeBCPanel(event)">
+  <div class="bc-panel" id="bc-panel">
+    <button class="bc-close" onclick="closeBCPanel()">✕ Cerrar</button>
+    <div class="bc-tag" id="bc-tag"></div>
+    <div class="bc-title" id="bc-title"></div>
+    <div class="bc-subtitle" id="bc-subtitle"></div>
+    <div id="bc-body"></div>
+  </div>
+</div>
+
+<script>
+
+// ══════════════════════════════════════════
+// DATOS RAW
+// ══════════════════════════════════════════
+const RAW = {"lectura":[{"nivel":"2","letra":"A","ciclo":"1° Ciclo","label":"2°A","n":39,"prom":56.7,"hab":{"Localizar":66.2,"Interpretar y relacionar":65.4,"Reflexionar":38.5}},{"nivel":"2","letra":"B","ciclo":"1° Ciclo","label":"2°B","n":39,"prom":67.6,"hab":{"Localizar":67.9,"Interpretar y relacionar":66.9,"Reflexionar":67.9}},{"nivel":"2","letra":"C","ciclo":"1° Ciclo","label":"2°C","n":39,"prom":65.9,"hab":{"Localizar":76.9,"Interpretar y relacionar":72.1,"Reflexionar":48.7}},{"nivel":"3","letra":"A","ciclo":"1° Ciclo","label":"3°A","n":42,"prom":43.4,"hab":{"Localizar":54.3,"Interpretar y relacionar":59.1,"Reflexionar":16.7}},{"nivel":"3","letra":"B","ciclo":"1° Ciclo","label":"3°B","n":38,"prom":52.3,"hab":{"Localizar":60.5,"Interpretar y relacionar":63.6,"Reflexionar":32.9}},{"nivel":"3","letra":"C","ciclo":"1° Ciclo","label":"3°C","n":41,"prom":45.3,"hab":{"Localizar":57.6,"Interpretar y relacionar":61.2,"Reflexionar":17.1}},{"nivel":"4","letra":"A","ciclo":"1° Ciclo","label":"4°A","n":45,"prom":62.2,"hab":{"Localizar":76.7,"Interpretar y relacionar":68.7,"Reflexionar":41.1}},{"nivel":"4","letra":"B","ciclo":"1° Ciclo","label":"4°B","n":45,"prom":73.2,"hab":{"Localizar":83.0,"Interpretar y relacionar":74.4,"Reflexionar":62.2}},{"nivel":"4","letra":"C","ciclo":"1° Ciclo","label":"4°C","n":44,"prom":66.7,"hab":{"Localizar":78.4,"Interpretar y relacionar":69.4,"Reflexionar":52.3}},{"nivel":"5","letra":"A","ciclo":"2° Ciclo","label":"5°A","n":38,"prom":56.5,"hab":{"Localizar":70.1,"Interpretar y relacionar":55.3,"Reflexionar":44.1}},{"nivel":"5","letra":"B","ciclo":"2° Ciclo","label":"5°B","n":39,"prom":43.3,"hab":{"Localizar":52.9,"Interpretar y relacionar":42.9,"Reflexionar":34.0}},{"nivel":"5","letra":"C","ciclo":"2° Ciclo","label":"5°C","n":36,"prom":60.9,"hab":{"Localizar":69.8,"Interpretar y relacionar":55.2,"Reflexionar":57.6}},{"nivel":"5","letra":"D","ciclo":"2° Ciclo","label":"5°D","n":32,"prom":68.4,"hab":{"Localizar":66.4,"Interpretar y relacionar":58.3,"Reflexionar":80.5}},{"nivel":"6","letra":"A","ciclo":"2° Ciclo","label":"6°A","n":36,"prom":51.3,"hab":{"Localizar":50.0,"Interpretar y relacionar":44.9,"Reflexionar":59.0}},{"nivel":"6","letra":"B","ciclo":"2° Ciclo","label":"6°B","n":30,"prom":51.2,"hab":{"Localizar":45.8,"Interpretar y relacionar":46.7,"Reflexionar":61.2}},{"nivel":"6","letra":"C","ciclo":"2° Ciclo","label":"6°C","n":38,"prom":48.6,"hab":{"Localizar":50.0,"Interpretar y relacionar":42.2,"Reflexionar":53.6}},{"nivel":"6","letra":"D","ciclo":"2° Ciclo","label":"6°D","n":37,"prom":51.6,"hab":{"Localizar":41.2,"Interpretar y relacionar":46.9,"Reflexionar":66.6}},{"nivel":"7","letra":"A","ciclo":"2° Ciclo","label":"7°A","n":34,"prom":43.7,"hab":{"Localizar":44.9,"Interpretar y relacionar":45.2,"Reflexionar":40.9}},{"nivel":"7","letra":"B","ciclo":"2° Ciclo","label":"7°B","n":32,"prom":47.1,"hab":{"Localizar":51.6,"Interpretar y relacionar":47.2,"Reflexionar":42.5}},{"nivel":"7","letra":"C","ciclo":"2° Ciclo","label":"7°C","n":36,"prom":62.4,"hab":{"Localizar":70.1,"Interpretar y relacionar":62.3,"Reflexionar":54.7}},{"nivel":"7","letra":"D","ciclo":"2° Ciclo","label":"7°D","n":38,"prom":52.4,"hab":{"Localizar":59.9,"Interpretar y relacionar":49.7,"Reflexionar":47.6}},{"nivel":"8","letra":"A","ciclo":"2° Ciclo","label":"8°A","n":37,"prom":51.2,"hab":{"Localizar":68.2,"Interpretar y relacionar":49.1,"Reflexionar":36.3}},{"nivel":"8","letra":"B","ciclo":"2° Ciclo","label":"8°B","n":41,"prom":49.9,"hab":{"Localizar":60.4,"Interpretar y relacionar":50.2,"Reflexionar":39.2}},{"nivel":"8","letra":"C","ciclo":"2° Ciclo","label":"8°C","n":32,"prom":52.1,"hab":{"Localizar":70.3,"Interpretar y relacionar":53.6,"Reflexionar":32.3}},{"nivel":"8","letra":"D","ciclo":"2° Ciclo","label":"8°D","n":37,"prom":45.8,"hab":{"Localizar":61.5,"Interpretar y relacionar":47.7,"Reflexionar":28.2}},{"nivel":"II","letra":"A","ciclo":"Ens. Media","label":"II A","n":31,"prom":59.3,"hab":{"Localizar":54.8,"Interpretar y relacionar":63.5,"Reflexionar":59.7}},{"nivel":"II","letra":"B","ciclo":"Ens. Media","label":"II B","n":33,"prom":54.7,"hab":{"Localizar":55.6,"Interpretar y relacionar":52.4,"Reflexionar":56.1}},{"nivel":"II","letra":"C","ciclo":"Ens. Media","label":"II C","n":35,"prom":47.3,"hab":{"Localizar":45.7,"Interpretar y relacionar":44.7,"Reflexionar":51.4}},{"nivel":"II","letra":"D","ciclo":"Ens. Media","label":"II D","n":32,"prom":48.1,"hab":{"Localizar":58.3,"Interpretar y relacionar":37.9,"Reflexionar":48.0}},{"nivel":"I","letra":"A","ciclo":"Ens. Media","label":"I A","n":33,"prom":59.5,"hab":{"Localizar":69.7,"Interpretar y relacionar":53.3,"Reflexionar":55.4}},{"nivel":"I","letra":"B","ciclo":"Ens. Media","label":"I B","n":30,"prom":60.2,"hab":{"Localizar":66.7,"Interpretar y relacionar":61.0,"Reflexionar":52.9}},{"nivel":"I","letra":"C","ciclo":"Ens. Media","label":"I C","n":26,"prom":53.3,"hab":{"Localizar":54.8,"Interpretar y relacionar":51.7,"Reflexionar":53.3}},{"nivel":"I","letra":"D","ciclo":"Ens. Media","label":"I D","n":38,"prom":45.4,"hab":{"Localizar":48.0,"Interpretar y relacionar":40.3,"Reflexionar":47.9}}],"matematica":[{"nivel":"3","letra":"A","ciclo":"1° Ciclo","label":"3°A","n":43,"prom":59.9,"hab":{"OA2":81.4,"OA3":77.9,"OA5":43.0,"OA6":53.0,"OA8":34.9,"OA9":34.9,"OA10":43.9,"OA12":62.8,"OA15":76.7,"OA21":73.3,"OA22":67.4,"OA25":69.8}},{"nivel":"3","letra":"B","ciclo":"1° Ciclo","label":"3°B","n":35,"prom":62.8,"hab":{"OA2":90.0,"OA3":78.6,"OA5":42.9,"OA6":61.4,"OA8":32.9,"OA9":33.3,"OA10":46.6,"OA12":71.4,"OA15":78.1,"OA21":72.9,"OA22":70.0,"OA25":75.7}},{"nivel":"3","letra":"C","ciclo":"1° Ciclo","label":"3°C","n":38,"prom":52.2,"hab":{"OA2":75.0,"OA3":68.4,"OA5":32.9,"OA6":44.2,"OA8":34.2,"OA9":23.7,"OA10":39.8,"OA12":46.7,"OA15":65.8,"OA21":59.2,"OA22":68.4,"OA25":68.4}},{"nivel":"4","letra":"A","ciclo":"1° Ciclo","label":"4°A","n":45,"prom":52.7,"hab":{"OA1":66.1,"OA3":64.4,"OA5":43.9,"OA6":33.3,"OA7":47.3,"OA8":31.9,"OA9":51.1,"OA13":50.4,"OA14":56.1,"OA18":31.1,"OA22":73.3,"OA23":53.3,"OA25":67.8,"OA27":67.8}},{"nivel":"4","letra":"B","ciclo":"1° Ciclo","label":"4°B","n":45,"prom":53.5,"hab":{"OA1":73.3,"OA3":60.9,"OA5":38.3,"OA6":24.4,"OA7":41.0,"OA8":24.4,"OA9":51.1,"OA13":49.6,"OA14":61.7,"OA18":33.3,"OA22":82.2,"OA23":48.9,"OA25":80.0,"OA27":80.0}},{"nivel":"4","letra":"C","ciclo":"1° Ciclo","label":"4°C","n":44,"prom":57.8,"hab":{"OA1":72.7,"OA3":65.9,"OA5":40.9,"OA6":29.5,"OA7":48.1,"OA8":39.4,"OA9":65.9,"OA13":50.0,"OA14":64.8,"OA18":36.4,"OA22":97.7,"OA23":50.0,"OA25":73.9,"OA27":73.9}},{"nivel":"5","letra":"A","ciclo":"2° Ciclo","label":"5°A","n":38,"prom":53.9,"hab":{"OA1":84.2,"OA3":57.9,"OA4":55.3,"OA6":58.3,"OA7":58.8,"OA10":15.8,"OA11":15.8,"OA13":35.5,"OA14":63.8,"OA15":55.9,"OA17":65.8,"OA18":55.3,"OA19":84.2,"OA21":62.3,"OA22":40.1,"OA23":64.5,"OA24":23.7,"OA26":73.7}},{"nivel":"5","letra":"B","ciclo":"2° Ciclo","label":"5°B","n":40,"prom":42.9,"hab":{"OA1":75.0,"OA3":43.3,"OA4":27.5,"OA6":40.0,"OA7":58.3,"OA10":17.5,"OA11":17.5,"OA13":40.0,"OA14":50.6,"OA15":25.0,"OA17":58.8,"OA18":57.5,"OA19":50.0,"OA21":48.3,"OA22":51.2,"OA23":42.5,"OA24":32.5,"OA26":37.5}},{"nivel":"5","letra":"C","ciclo":"2° Ciclo","label":"5°C","n":35,"prom":42.7,"hab":{"OA1":85.7,"OA3":52.4,"OA4":32.4,"OA6":43.7,"OA7":53.3,"OA10":5.7,"OA11":5.7,"OA13":35.7,"OA14":50.7,"OA15":10.0,"OA17":60.0,"OA18":54.3,"OA19":42.9,"OA21":56.2,"OA22":53.6,"OA23":45.7,"OA24":28.6,"OA26":51.4}},{"nivel":"5","letra":"D","ciclo":"2° Ciclo","label":"5°D","n":36,"prom":44.6,"hab":{"OA1":70.8,"OA3":48.1,"OA4":42.6,"OA6":46.0,"OA7":50.0,"OA10":8.3,"OA11":8.3,"OA13":30.6,"OA14":56.9,"OA15":14.6,"OA17":54.2,"OA18":66.7,"OA19":77.8,"OA21":55.6,"OA22":45.1,"OA23":52.8,"OA24":19.4,"OA26":54.2}},{"nivel":"6","letra":"A","ciclo":"2° Ciclo","label":"6°A","n":27,"prom":46.2,"hab":{"OA2":43.2,"OA3":31.5,"OA4":29.6,"OA5":23.5,"OA7":33.3,"OA8":42.0,"OA11":61.5,"OA13":69.1,"OA16":58.0,"OA18":69.1,"OA19":40.7,"OA23":57.4,"OA24":41.7}},{"nivel":"6","letra":"B","ciclo":"2° Ciclo","label":"6°B","n":34,"prom":45.7,"hab":{"OA2":43.5,"OA3":44.1,"OA4":41.2,"OA5":43.1,"OA7":52.9,"OA8":36.3,"OA11":44.7,"OA13":59.8,"OA16":44.1,"OA18":59.8,"OA19":23.5,"OA23":59.6,"OA24":41.2}},{"nivel":"6","letra":"C","ciclo":"2° Ciclo","label":"6°C","n":35,"prom":41.8,"hab":{"OA2":33.3,"OA3":34.3,"OA4":32.1,"OA5":31.4,"OA7":25.7,"OA8":34.3,"OA11":43.4,"OA13":72.4,"OA16":45.7,"OA18":72.4,"OA19":22.9,"OA23":52.1,"OA24":43.6}},{"nivel":"6","letra":"D","ciclo":"2° Ciclo","label":"6°D","n":41,"prom":46.0,"hab":{"OA2":41.5,"OA3":35.4,"OA4":30.5,"OA5":36.6,"OA7":30.1,"OA8":33.3,"OA11":49.8,"OA13":74.0,"OA16":52.8,"OA18":74.0,"OA19":36.6,"OA23":60.4,"OA24":43.3}},{"nivel":"7","letra":"A","ciclo":"2° Ciclo","label":"7°A","n":26,"prom":38.5,"hab":{"OA1":49.2,"OA3":23.1,"OA4":28.8,"OA6":42.3,"OA8":18.3,"OA11":42.3,"OA14":62.2,"OA16":48.7,"OA18":31.2}},{"nivel":"7","letra":"B","ciclo":"2° Ciclo","label":"7°B","n":36,"prom":42.8,"hab":{"OA1":63.9,"OA3":32.6,"OA4":39.4,"OA6":47.2,"OA8":30.6,"OA11":47.2,"OA14":50.0,"OA16":50.5,"OA18":24.0}},{"nivel":"7","letra":"C","ciclo":"2° Ciclo","label":"7°C","n":32,"prom":49.6,"hab":{"OA1":65.6,"OA3":39.8,"OA4":45.8,"OA6":59.4,"OA8":28.9,"OA11":54.7,"OA14":61.5,"OA16":58.3,"OA18":32.4}},{"nivel":"7","letra":"D","ciclo":"2° Ciclo","label":"7°D","n":39,"prom":42.6,"hab":{"OA1":56.9,"OA3":25.6,"OA4":32.1,"OA6":46.2,"OA8":21.2,"OA11":53.8,"OA14":62.4,"OA16":42.7,"OA18":42.3}},{"nivel":"8","letra":"A","ciclo":"2° Ciclo","label":"8°A","n":41,"prom":46.9,"hab":{"OA1":52.0,"OA2":23.4,"OA3":67.1,"OA8":36.6,"OA10":41.5,"OA12":39.0,"OA13":42.7,"OA15":61.0,"OA16":67.9,"OA17":37.4}},{"nivel":"8","letra":"B","ciclo":"2° Ciclo","label":"8°B","n":34,"prom":47.2,"hab":{"OA1":49.5,"OA2":28.2,"OA3":54.4,"OA8":50.0,"OA10":36.3,"OA12":47.1,"OA13":45.1,"OA15":61.8,"OA16":67.2,"OA17":32.4}},{"nivel":"8","letra":"C","ciclo":"2° Ciclo","label":"8°C","n":27,"prom":42.6,"hab":{"OA1":43.8,"OA2":25.2,"OA3":63.0,"OA8":27.8,"OA10":33.3,"OA12":46.3,"OA13":42.6,"OA15":44.4,"OA16":58.0,"OA17":42.0}},{"nivel":"8","letra":"D","ciclo":"2° Ciclo","label":"8°D","n":31,"prom":39.7,"hab":{"OA1":40.9,"OA2":20.0,"OA3":43.5,"OA8":33.9,"OA10":32.3,"OA12":33.9,"OA13":41.9,"OA15":58.1,"OA16":69.9,"OA17":22.6}},{"nivel":"II","letra":"A","ciclo":"Ens. Media","label":"II A","n":36,"prom":46.5,"hab":{"OA1":44.6,"OA2":54.0,"OA3":46.7,"OA5":46.7,"OA8":47.9,"OA11":39.4}},{"nivel":"II","letra":"B","ciclo":"Ens. Media","label":"II B","n":31,"prom":42.0,"hab":{"OA1":39.6,"OA2":43.4,"OA3":42.2,"OA5":44.9,"OA8":49.2,"OA11":32.9}},{"nivel":"II","letra":"C","ciclo":"Ens. Media","label":"II C","n":41,"prom":27.5,"hab":{"OA1":25.8,"OA2":24.4,"OA3":25.3,"OA5":24.3,"OA8":33.5,"OA11":31.7}},{"nivel":"II","letra":"D","ciclo":"Ens. Media","label":"II D","n":44,"prom":26.1,"hab":{"OA1":23.9,"OA2":25.8,"OA3":22.5,"OA5":23.5,"OA8":32.4,"OA11":28.2}},{"nivel":"I","letra":"A","ciclo":"Ens. Media","label":"I A","n":38,"prom":30.8,"hab":{"OA1":27.0,"OA2":36.4,"OA3":27.6,"OA4":31.7,"OA8":28.0,"OA10":28.0,"OA12":48.7,"OA14":18.9}},{"nivel":"I","letra":"B","ciclo":"Ens. Media","label":"I B","n":39,"prom":37.0,"hab":{"OA1":42.1,"OA2":48.3,"OA3":38.8,"OA4":37.2,"OA8":34.1,"OA10":34.1,"OA12":37.6,"OA14":23.9}},{"nivel":"I","letra":"C","ciclo":"Ens. Media","label":"I C","n":33,"prom":24.5,"hab":{"OA1":24.7,"OA2":31.8,"OA3":30.3,"OA4":19.7,"OA8":17.3,"OA10":17.3,"OA12":37.4,"OA14":17.2}},{"nivel":"I","letra":"D","ciclo":"Ens. Media","label":"I D","n":39,"prom":60.3,"hab":{"OA1":62.4,"OA2":62.0,"OA3":66.3,"OA4":63.6,"OA8":55.5,"OA10":55.5,"OA12":58.5,"OA14":58.5}}]};
+const TEACHERS={"2A":{"lenguaje":"Javiera Villagrán","matematica":"Javiera Villagrán"},"2B":{"lenguaje":"Constanza Duarte","matematica":"Constanza Duarte"},"2C":{"lenguaje":"Javier Altamirano","matematica":"Javier Altamirano"},"3A":{"lenguaje":"Belén Brito","matematica":"Belén Brito"},"3B":{"lenguaje":"Kattya Parra","matematica":"Kattya Parra"},"3C":{"lenguaje":"Paola Calderón","matematica":"Paola Calderón"},"4A":{"lenguaje":"Ruth Soto","matematica":"Ruth Soto"},"4B":{"lenguaje":"Maria Constanza Ulloa","matematica":"Maria Constanza Ulloa"},"4C":{"lenguaje":"María Luisa Cuevas","matematica":"María Luisa Cuevas"},"5A":{"lenguaje":"Sofía norambuena","matematica":"Francisca Miranda"},"5B":{"lenguaje":"Sofía norambuena","matematica":"Gabriela Cruz"},"5C":{"lenguaje":"Karen Riquelme","matematica":"Felipe Roa"},"5D":{"lenguaje":"Karen Riquelme","matematica":"Gabriela Cruz"},"6A":{"lenguaje":"Karen Riquelme","matematica":"Felipe Roa"},"6B":{"lenguaje":"Karen Riquelme","matematica":"Felipe Roa"},"6C":{"lenguaje":"Nicole Aguilera","matematica":"Gabriela Cruz"},"6D":{"lenguaje":"Karen Riquelme","matematica":"Gabriela Cruz"},"7A":{"lenguaje":"Jorge Sanhueza","matematica":"María Paz Riquelme"},"7B":{"lenguaje":"Jorge Sanhueza","matematica":"María Paz Riquelme"},"7C":{"lenguaje":"Jorge Sanhueza","matematica":"Felipe Roa"},"7D":{"lenguaje":"Sofía norambuena","matematica":"Felipe Roa"},"8A":{"lenguaje":"Jorge Sanhueza","matematica":"María Paz Riquelme"},"8B":{"lenguaje":"Jorge Sanhueza","matematica":"María Paz Riquelme"},"8C":{"lenguaje":"Sofía norambuena","matematica":"Francisca Miranda"},"8D":{"lenguaje":"Sofía norambuena","matematica":"Francisca Miranda"},"IA":{"lenguaje":"Nicole Aguilera","matematica":"Lorena González"},"IB":{"lenguaje":"Nicole Aguilera","matematica":"Lorena González"},"IC":{"lenguaje":"Macarena Ordenes","matematica":"Francisca Miranda"},"ID":{"lenguaje":"Karen RIquelme","matematica":"Francisca Miranda"},"IIA":{"lenguaje":"Daniela Contreras","matematica":"Carlos Miranda"},"IIB":{"lenguaje":"Daniela Contreras","matematica":"Carlos Miranda"},"IIC":{"lenguaje":"Daniela Contreras","matematica":"Camila Fuentes"},"IID":{"lenguaje":"Macarena Ordenes","matematica":"Camila Fuentes"}};
+
+// ══════════════════════════════════════════
+// BASES CURRICULARES
+// ══════════════════════════════════════════
+const BC = {
+  ejes: {
+    "Localizar": {
+      color:"#38bdf8",
+      tag:"Eje de Lectura — Comprensión Literal",
+      desc:"Habilidad para encontrar y extraer información <strong>explícita</strong> en el texto: datos, hechos, personajes, fechas o secuencias mencionadas directamente por el autor.",
+      habilidades:["Extraer información escrita en el texto","Identificar datos concretos y hechos","Reconocer personajes, lugares y eventos mencionados","Seguir secuencias o instrucciones descritas"],
+      referencia:"BC Lenguaje y Comunicación 1°–6° y 7°–2°M: Eje Lectura — comprensión lectora literal",
+      sugerencia_bajo:"Trabajar estrategias de lectura activa: subrayado, identificación de ideas principales y activación de conocimientos previos antes de leer.",
+      sugerencia_alto:"Avanzar hacia preguntas inferenciales y actividades de síntesis que potencien habilidades de mayor complejidad."
+    },
+    "Interpretar y relacionar": {
+      color:"#10b981",
+      tag:"Eje de Lectura — Comprensión Inferencial",
+      desc:"Habilidad para <strong>inferir</strong> significados no explícitos, relacionar información del texto con conocimientos previos y establecer conexiones entre distintas partes del texto.",
+      habilidades:["Realizar inferencias a partir del contexto","Relacionar información implícita","Conectar ideas de distintas partes del texto","Interpretar lenguaje figurado y metáforas","Deducir el significado de palabras desconocidas"],
+      referencia:"BC Lenguaje y Comunicación 1°–6° y 7°–2°M: Eje Lectura — comprensión inferencial y relacional",
+      sugerencia_bajo:"Aplicar estrategias de inferencia: preguntas antes-durante-después, conexiones texto-texto y texto-mundo. Usar organizadores gráficos para relaciones causales.",
+      sugerencia_alto:"Proponer textos de mayor complejidad con múltiples planos de significado y trabajar la intertextualidad."
+    },
+    "Reflexionar": {
+      color:"#a78bfa",
+      tag:"Eje de Lectura — Comprensión Crítica",
+      desc:"Habilidad para <strong>evaluar críticamente</strong> el texto, emitir juicios, reflexionar sobre el propósito del autor y relacionar el contenido con la experiencia personal o el contexto sociocultural.",
+      habilidades:["Evaluar críticamente el contenido","Emitir opiniones fundamentadas en el texto","Identificar el propósito y punto de vista del autor","Relacionar la lectura con experiencias propias","Detectar sesgos, ironía y recursos persuasivos"],
+      referencia:"BC Lenguaje y Comunicación 1°–6° y 7°–2°M: Eje Lectura — comprensión crítica y reflexiva",
+      sugerencia_bajo:"Propiciar debates y círculos de lectura donde los estudiantes argumenten sus opiniones con evidencia del texto. Trabajar textos de opinión y cartas al editor.",
+      sugerencia_alto:"Abordar textos multimodales y comparar puntos de vista entre distintas fuentes. Desarrollar proyectos de escritura crítica."
+    }
+  }
+};
+
+const BC_OA = {"2": {"OA1": "Contar números del 0 al 1 000 de 2 en 2, de 5 en 5, de 10 en 10 y de 100 en 100, hacia adelante y hacia atrás, empezando por cualquier número menor que 1 000.", "OA2": "Leer números del 0 al 100 y representarlos en forma concreta, pictórica y simbólica.", "OA3": "Comparar y ordenar números del 0 al 100 de menor a mayor y viceversa, usando material concreto y monedas.", "OA4": "Estimar cantidades hasta 100 en situaciones concretas, usando un referente.", "OA5": "Componer y descomponer números del 0 a 100 de manera aditiva, en forma concreta, pictórica y simbólica.", "OA6": "Describir y aplicar estrategias de cálculo mental para adiciones y sustracciones hasta 20: completar la decena, usar dobles.", "OA7": "Identificar las unidades y decenas en números del 0 al 100, representando las cantidades de acuerdo al valor posicional.", "OA8": "Demostrar y explicar de manera concreta, pictórica y simbólica el efecto de sumar y restar 0 a un número.", "OA9": "Demostrar que comprende la adición y la sustracción en el ámbito del 0 al 100: - usando un lenguaje cotidiano y matemático para describir acciones desde su propia experiencia; - resolviendo problemas con una variedad de representaciones concretas y pictóricas; - registrando el proceso en forma simbólica; - aplicando los algoritmos de la adición y sustracción sin considerar reserva; - creando problemas matemáticos en contextos familiares y resolviéndolos.", "OA10": "Demostrar que comprende la relación entre la adición y la sustracción al usar la familia de operaciones en cálculos al 100.", "OA11": "Demostrar que comprende la multiplicación: · usando representaciones concretas y pictóricas · expresando una multiplicación como una adición de sumandos iguales · usando la distributividad para construir las tablas del 2, del 5 y del 10 · resolviendo problemas que involucren las tablas del 2, del 5 y del 10.", "OA12": "Crear, representar y continuar una variedad de patrones numéricos y completar los elementos faltantes en tablas.", "OA13": "Demostrar, explicar y registrar la igualdad y la desigualdad en forma concreta y pictórica del 0 al 100.", "OA14": "Representar y describir la posición de objetos y personas en relación a sí mismos y a otros objetos.", "OA15": "Describir, comparar y construir figuras 2D (triángulos, cuadrados, rectángulos y círculos) con material concreto.", "OA16": "Describir, comparar y construir figuras 3D (cubos, paralelepípedos, esferas y conos) con diversos materiales.", "OA17": "Identificar días, semanas, meses y fechas en el calendario.", "OA18": "Leer horas y medias horas en relojes digitales, en el contexto de la resolución de problemas.", "OA19": "Determinar la longitud de objetos, usando unidades de medidas no estandarizadas y unidades estandarizadas (cm y m).", "OA20": "Recolectar y registrar datos para responder preguntas estadísticas sobre juegos con monedas y dados, en tablas simples.", "OA21": "Registrar en tablas y gráficos de barra simple, resultados de juegos aleatorios con dados y monedas.", "OA22": "Construir, leer e interpretar pictogramas con escala y gráficos de barra simple."}, "3": {"OA1": "Contar números del 0 al 1 000 de 5 en 5, de 10 en 10, de 100 en 100: empezando por cualquier número del 0 al 1 000.", "OA2": "Leer números hasta 1000 y representarlos en forma concreta, pictórica y simbólica.", "OA3": "Comparar y ordenar números naturales hasta 1 000, utilizando la recta numérica o la tabla posicional de manera manual y/o con software educativo.", "OA4": "Describir y aplicar estrategias de cálculo mental para las adiciones y sustracciones hasta 100: por ejemplo completar la decena, usar dobles.", "OA5": "Identificar y describir las unidades, decenas y centenas en números del 0 al 1000, representando las cantidades de acuerdo al valor posicional.", "OA6": "Demostrar que comprenden la adición y la sustracción de números del 0 al 1 000: usando estrategias personales con y sin material concreto; resolviendo problemas rutinarios y no rutinarios; aplicando los algoritmos con y sin reserva.", "OA7": "Demostrar que comprenden la relación entre la adición y la sustracción, usando la familia de operaciones en números hasta 1000.", "OA8": "Demostrar que comprenden las tablas de multiplicar hasta 10 de manera progresiva: usando representaciones concretas y pictóricas; expresando una multiplicación como adición de sumandos iguales; usando la distributividad; aplicando los resultados sin calcular; resolviendo problemas.", "OA9": "Demostrar que comprenden la división en el contexto de las tablas de hasta 10x10: representando como repartición y agrupación; resolviendo problemas; expresando como sustracción repetida; aplicando la relación inversa multiplicación-división.", "OA10": "Resolver problemas rutinarios en contextos cotidianos, que incluyan dinero e involucren las cuatro operaciones básicas.", "OA11": "Demostrar que comprenden las fracciones de uso común: 1/4, 1/3, 1/2, 2/3, 3/4 explicando que una fracción representa la parte de un todo; comparando fracciones del mismo denominador.", "OA12": "Generar, describir y registrar patrones numéricos, usando una variedad de estrategias en tablas del 100.", "OA13": "Resolver ecuaciones de un paso que involucren adiciones y sustracciones y un símbolo geométrico que represente un número desconocido.", "OA14": "Describir la localización de un objeto en un mapa simple o cuadrícula.", "OA15": "Demostrar que comprenden la relación que existe entre figuras 3D y figuras 2D: construyendo una figura 3D a partir de una red dada.", "OA16": "Describir cubos, paralelepípedos, esferas, conos, cilindros y pirámides de acuerdo a la forma de sus caras y número de vértices.", "OA17": "Reconocer en el entorno figuras 2D que están trasladadas, reflejadas y rotadas.", "OA18": "Demostrar que comprenden el concepto de ángulo: identificando ejemplos de ángulos en el entorno; estimando la medida de ángulos, usando como referente ángulos de 45° y de 90°.", "OA19": "Leer e interpretar líneas de tiempo y calendarios.", "OA20": "Leer y registrar el tiempo en horas, medias horas, cuartos de hora y minutos en relojes análogos y digitales.", "OA21": "Demostrar que comprenden el perímetro de una figura regular e irregular: midiendo y registrando el perímetro; determinando el perímetro de cuadrado y rectángulo.", "OA22": "Demostrar que comprende la medición del peso (g y kg): comparando y ordenando objetos; usando modelos para la relación g-kg; estimando pesos cotidianos; midiendo y registrando.", "OA23": "Realizar encuestas y clasificar y organizar los datos obtenidos en tablas y visualizarlos en gráficos de barra simple.", "OA24": "Registrar y ordenar datos obtenidos de juegos aleatorios con dados y monedas, encontrando el menor, el mayor y estimando el promedio.", "OA25": "Construir, leer e interpretar pictogramas y gráficos de barra simple con escala, en base a información recolectada o dada.", "OA26": "Representar datos usando diagramas de puntos."}, "4": {"OA1": "Representar y describir números del 0 al 10 000: contándolos de 10 en 10, de 100 en 100, de 1 000 en 1 000; leyendo, escribiendo y representando; identificando el valor posicional.", "OA2": "Describir y aplicar estrategias de cálculo mental: conteo hacia delante y atrás; doblar y dividir por 2; usar propiedades conmutativa, asociativa y distributiva.", "OA3": "Demostrar que comprenden la adición y la sustracción de números hasta 1 000: usando estrategias personales; descomponiendo números; estimando sumas y diferencias; resolviendo problemas rutinarios y no rutinarios; aplicando los algoritmos.", "OA4": "Fundamentar y aplicar las propiedades del 0 y del 1 para la multiplicación y la propiedad del 1 para la división.", "OA5": "Demostrar que comprenden la multiplicación de números de tres dígitos por números de un dígito: usando estrategias con o sin material concreto; utilizando tablas de multiplicación; estimando productos; usando propiedad distributiva; aplicando el algoritmo.", "OA6": "Demostrar que comprenden la división con dividendos de dos dígitos y divisores de un dígito: usando estrategias para dividir; utilizando la relación multiplicación-división; estimando el cociente; aplicando estrategia por descomposición; aplicando el algoritmo.", "OA7": "Resolver problemas rutinarios y no rutinarios en contextos cotidianos que incluyen dinero, seleccionando la estrategia o procedimiento adecuado.", "OA8": "Demostrar que comprende las fracciones con denominadores 100, 12, 10, 8, 6, 5, 4, 3, 2: explicando que una fracción representa parte de un todo o de un grupo; comparando y ordenando fracciones con material concreto.", "OA9": "Resolver adiciones y sustracciones de fracciones con igual denominador (denominadores 100, 12, 10, 8, 6, 5, 4, 3, 2) de manera concreta, pictórica y simbólica.", "OA10": "Identificar, escribir y representar fracciones propias y los números mixtos hasta el 5 de manera concreta, pictórica y simbólica.", "OA11": "Describir y representar decimales (décimos y centésimos): representándolos en forma concreta, pictórica y simbólica; comparándolos y ordenándolos hasta la centésima.", "OA12": "Resolver adiciones y sustracciones de decimales, empleando el valor posicional hasta la centésima en contexto de resolución de problemas.", "OA13": "Identificar y describir patrones numéricos en tablas que involucren una operación, de manera manual y/o con software educativo.", "OA14": "Resolver ecuaciones e inecuaciones de un paso que involucren adiciones y sustracciones, comprobando los resultados en forma concreta y pictórica.", "OA15": "Describir la localización absoluta de un objeto en un mapa simple con coordenadas informales.", "OA16": "Determinar las vistas de figuras 3D, desde el frente, desde el lado y desde arriba.", "OA17": "Demostrar que comprenden una línea de simetría: identificando figuras simétricas 2D; creando figuras simétricas; dibujando líneas de simetría; usando software geométrico.", "OA18": "Trasladar, rotar y reflejar figuras 2D.", "OA19": "Construir ángulos con el transportador y compararlos.", "OA20": "Leer y registrar diversas mediciones del tiempo en relojes análogos y digitales, usando los conceptos de hora, minuto y segundo.", "OA21": "Realizar conversiones entre unidades de tiempo en el contexto de la resolución de problemas: segundos en un minuto, minutos en una hora, días en una semana.", "OA22": "Medir longitudes con unidades estandarizadas (m, cm) y realizar transformaciones entre estas unidades (m a cm y viceversa).", "OA23": "Demostrar que comprenden el concepto de área de un rectángulo y de un cuadrado: reconociendo que el área se mide en unidades cuadradas; seleccionando la unidad estandarizada cm² y m²; determinando y registrando el área.", "OA24": "Demostrar que comprenden el concepto de volumen de un cuerpo: seleccionando una unidad no estandarizada; reconociendo que el volumen se mide en unidades cúbicas; midiendo y registrando.", "OA25": "Realizar encuestas, analizar los datos, comparar con los resultados de muestras aleatorias, usando tablas y gráficos.", "OA26": "Realizar experimentos aleatorios lúdicos y cotidianos, y tabular y representar mediante gráficos de manera manual y/o con software educativo.", "OA27": "Leer e interpretar pictogramas y gráficos de barra simple con escala, y comunicar sus conclusiones."}, "5": {"OA1": "Representar y describir números naturales de hasta más de 6 dígitos y menores que 1 000 millones: identificando el valor posicional; componiendo y descomponiendo en forma estándar y expandida; comparando y ordenando.", "OA2": "Aplicar estrategias de cálculo mental para la multiplicación: anexar ceros al multiplicar por múltiplo de 10; doblar y dividir por 2; usando propiedades conmutativa, asociativa y distributiva.", "OA3": "Demostrar que comprenden la multiplicación de números naturales de dos dígitos por números naturales de dos dígitos: estimando productos; aplicando estrategias de cálculo mental; resolviendo problemas rutinarios y no rutinarios aplicando el algoritmo.", "OA4": "Demostrar que comprenden la división con dividendos de tres dígitos y divisores de un dígito: interpretando el resto; resolviendo problemas rutinarios y no rutinarios.", "OA5": "Realizar cálculos que involucren las cuatro operaciones, aplicando las reglas relativas a paréntesis y la prevalencia de las operaciones.", "OA6": "Resolver problemas rutinarios y no rutinarios que involucren las cuatro operaciones y combinaciones de ellas, que incluyan situaciones con dinero.", "OA7": "Demostrar que comprenden las fracciones propias: representándolas concreta, pictórica y simbólicamente; creando grupos de fracciones equivalentes; comparando fracciones propias con igual y distinto denominador.", "OA8": "Demostrar que comprenden las fracciones impropias de uso común de denominadores 2, 3, 4, 5, 6, 8, 10: usando material concreto; identificando equivalencias entre fracciones impropias y números mixtos; representando en la recta numérica.", "OA9": "Resolver adiciones y sustracciones con fracciones propias con denominadores menores o iguales a 12: de manera pictórica y simbólica; amplificando o simplificando.", "OA10": "Determinar el decimal que corresponde a fracciones con denominador 2, 4, 5 y 10.", "OA11": "Comparar y ordenar decimales hasta la milésima.", "OA12": "Resolver adiciones y sustracciones de decimales, empleando el valor posicional hasta la milésima.", "OA13": "Resolver problemas rutinarios y no rutinarios, aplicando adiciones y sustracciones de fracciones propias con denominadores menores o iguales a 12 y de decimales hasta la milésima.", "OA14": "Descubrir alguna regla que explique una sucesión dada y que permita hacer predicciones.", "OA15": "Resolver problemas, usando ecuaciones e inecuaciones de un paso, que involucren adiciones y sustracciones con números naturales.", "OA16": "Identificar y dibujar puntos en el primer cuadrante del plano cartesiano, dadas sus coordenadas en números naturales.", "OA17": "Describir y dar ejemplos de aristas y caras de figuras 3D y lados de figuras 2D que son paralelos, que se intersectan y que son perpendiculares.", "OA18": "Demostrar que comprenden el concepto de congruencia, usando la traslación, la reflexión y la rotación en cuadrículas y materiales concretos.", "OA19": "Medir longitudes con unidades estandarizadas (m, cm, mm) en el contexto de la resolución de problemas.", "OA20": "Realizar transformaciones entre unidades de medidas de longitud: km a m, m a cm, cm a mm y viceversa.", "OA21": "Diseñar y construir diferentes rectángulos, dados el perímetro, el área o ambos, y sacar conclusiones.", "OA22": "Calcular áreas de triángulos, de paralelogramos y de trapecios, y estimar áreas de figuras irregulares: por conteo de cuadrículas; comparación con área de un rectángulo; completar figuras por traslación.", "OA23": "Calcular el promedio de datos e interpretarlo en su contexto.", "OA24": "Describir la posibilidad de ocurrencia de un evento en base a un experimento aleatorio, empleando los términos: seguro, posible, imposible, más probable, menos probable, igual de probable.", "OA25": "Comparar probabilidades de distintos eventos sin calcularlas.", "OA26": "Leer, interpretar y completar tablas, gráficos de barra simple y gráficos de línea y comunicar sus conclusiones.", "OA27": "Utilizar diagramas de tallo y hojas para representar datos provenientes de muestras aleatorias."}, "6": {"OA1": "Demostrar que comprenden los factores y múltiplos: determinando los múltiplos y factores de números naturales menores de 100; identificando números primos y compuestos; resolviendo problemas que involucran múltiplos.", "OA2": "Realizar cálculos que involucren las cuatro operaciones en el contexto de la resolución de problemas, utilizando la calculadora y el computador en ámbitos numéricos superiores al 10 000.", "OA3": "Demostrar que comprenden el concepto de razón de manera concreta, pictórica y simbólica, en forma manual y/o con software educativo.", "OA4": "Demostrar que comprenden el concepto de porcentaje de manera concreta, pictórica y simbólica, de forma manual y/o con software educativo.", "OA5": "Demostrar que comprenden las fracciones y números mixtos: identificando y determinando equivalencias; representando en la recta numérica.", "OA6": "Resolver adiciones y sustracciones de fracciones propias e impropias y números mixtos con numeradores y denominadores de hasta dos dígitos.", "OA7": "Demostrar que comprenden la multiplicación y la división de decimales por números naturales de un dígito, múltiplos de 10 o de 100, de manera manual y/o usando software educativo.", "OA8": "Resolver problemas rutinarios y no rutinarios que involucren adiciones y sustracciones de fracciones propias e impropias y decimales.", "OA9": "Demostrar que comprenden la relación entre los valores de una tabla y aplicarla en la resolución de problemas: identificando patrones entre los valores; formulando una regla con lenguaje matemático.", "OA10": "Representar generalizaciones de relaciones entre números naturales, usando expresiones con letras y ecuaciones.", "OA11": "Resolver ecuaciones de primer grado con una incógnita, utilizando estrategias como usar una balanza o la descomposición.", "OA12": "Construir y comparar triángulos de acuerdo a la medida de sus lados y/o sus ángulos con instrumentos geométricos o software educativo.", "OA13": "Demostrar que comprenden el concepto de área de una superficie en cubos y paralelepípedos, calculando el área de sus rostros en cm² y m².", "OA14": "Realizar teselados de figuras 2D usando traslaciones, reflexiones y rotaciones.", "OA15": "Construir ángulos agudos, obtusos, rectos, extendidos y completos con instrumentos geométricos o software educativo.", "OA16": "Identificar los ángulos que se forman entre dos rectas que se cortan (pares de ángulos opuestos por el vértice y pares de ángulos suplementarios adyacentes).", "OA17": "Demostrar de manera concreta, pictórica y simbólica que la suma de los ángulos interiores de un triángulo es 180° y de un cuadrilátero 360°.", "OA18": "Calcular la superficie de cubos y paralelepípedos expresando el resultado en cm y m.", "OA19": "Calcular el volumen de cubos y paralelepípedos, expresando el resultado en cm, m y mm.", "OA20": "Estimar y medir ángulos usando el transportador, expresando las mediciones en grados.", "OA21": "Calcular ángulos en rectas paralelas cortadas por una transversal y en triángulos.", "OA22": "Comparar distribuciones de dos grupos, provenientes de muestras aleatorias, usando diagramas de puntos y determinando medidas de tendencia central.", "OA23": "Conjeturar acerca de la tendencia de resultados obtenidos en repeticiones de un mismo experimento con dados, monedas u otros.", "OA24": "Leer e interpretar gráficos de barra doble y circulares y comunicar sus conclusiones."}, "7": {"OA1": "Mostrar que comprenden la adición y la sustracción de números enteros: representando en la recta numérica; de manera concreta, pictórica y simbólica; dándole significado a los símbolos + y -; resolviendo problemas cotidianos.", "OA2": "Explicar la multiplicación y la división de fracciones positivas: utilizando representaciones concretas, pictóricas y simbólicas; relacionándolas con la multiplicación y la división de números decimales.", "OA3": "Resolver problemas que involucren la multiplicación y la división de fracciones y de decimales positivos en contextos reales.", "OA4": "Mostrar que comprenden el concepto de porcentaje: representándolo pictóricamente; calculando de varias maneras; aplicándolo a situaciones sencillas.", "OA5": "Utilizar potencias de base 10 con exponente natural: usando los términos potencia, base, exponente; definiendo y usando el exponente 0 en el sistema decimal; expresando números naturales en notación científica; resolviendo problemas.", "OA6": "Utilizar el lenguaje algebraico para generalizar relaciones entre números, para establecer y formular reglas y propiedades.", "OA7": "Reducir expresiones algebraicas, reuniendo términos semejantes para obtener expresiones de la forma ax + by + cz.", "OA8": "Mostrar que comprenden las proporciones directas e inversas: realizando tablas de valores para relaciones proporcionales; graficando los valores de la tabla; explicando las características de la gráfica; resolviendo problemas de la vida diaria.", "OA9": "Modelar y resolver problemas diversos de la vida diaria y de otras asignaturas, que involucran ecuaciones e inecuaciones lineales de la forma ax = b; x/a = b.", "OA10": "Descubrir relaciones que involucran ángulos exteriores o interiores de diferentes polígonos.", "OA11": "Mostrar que comprenden el círculo: describiendo las relaciones entre radio, diámetro y perímetro; estimando el perímetro y el área; aplicando las aproximaciones en resolución de problemas; identificándolo como lugar geométrico.", "OA12": "Construir objetos geométricos de manera manual y/o con software educativo: líneas perpendiculares, paralelas, bisectrices y alturas; puntos medios; triángulos y cuadriláteros congruentes.", "OA13": "Desarrollar y aplicar la fórmula del área de triángulos, paralelogramos y trapecios.", "OA14": "Identificar puntos en el plano cartesiano, usando pares ordenados y vectores de forma concreta (juegos) y pictórica.", "OA15": "Estimar el porcentaje de algunas características de una población desconocida por medio del muestreo.", "OA16": "Representar datos obtenidos en una muestra mediante tablas de frecuencias absolutas y relativas, utilizando gráficos apropiados para el tipo de variable.", "OA17": "Mostrar que comprenden las medidas de tendencia central y el rango: determinando las medidas para realizar inferencias; determinando la medida adecuada para responder un problema; utilizándolas para comparar dos poblaciones.", "OA18": "Explicar las probabilidades de eventos obtenidos por medio de experimentos: estimándolas de manera intuitiva; utilizando frecuencias relativas; relacionándolas con razones, fracciones o porcentaje.", "OA19": "Comparar las frecuencias relativas de un evento obtenidas al repetir un experimento de forma manual y/o con software educativo, con la probabilidad teórica del evento."}, "8": {"OA1": "Mostrar que comprenden la multiplicación y la división de números enteros: representándolos concreta, pictórica y simbólicamente; aplicando la regla de los signos; resolviendo problemas rutinarios y no rutinarios.", "OA2": "Utilizar las operaciones de multiplicación y división con los números racionales en el contexto de la resolución de problemas: representándolos en la recta numérica; involucrando distintos conjuntos numéricos (fracciones, decimales y enteros).", "OA3": "Explicar la multiplicación, la división y el proceso de formar potencias de potencias de base natural y exponente entero no negativo.", "OA4": "Mostrar que comprenden las raíces cuadradas de números naturales: estimándolas de manera intuitiva; representándolas concreta, pictórica y simbólicamente; aplicándolas en situaciones geométricas y en la vida diaria.", "OA5": "Resolver problemas que involucran variaciones porcentuales en contextos diversos, usando representaciones concretas, pictóricas y simbólicas.", "OA6": "Mostrar que comprenden las operaciones de expresiones algebraicas: representándolas pictórica y simbólicamente; relacionándolas con el área de cuadrados, rectángulos y volúmenes de paralelepípedos; determinando formas factorizadas.", "OA7": "Mostrar que comprenden la noción de función por medio de un cambio lineal: utilizando tablas; usando metáforas de máquinas; estableciendo reglas entre x e y; representando gráficamente en el plano cartesiano.", "OA8": "Modelar situaciones de la vida diaria y de otras asignaturas, usando ecuaciones lineales de la forma ax = b; x/a = b, ax + b = c, ax + b = cx + d.", "OA9": "Resolver inecuaciones lineales con coeficientes racionales en el contexto de la resolución de problemas, por medio de representaciones concretas, pictóricas y simbólicas.", "OA10": "Mostrar que comprenden la función afín: generalizándola como suma de una constante con una función lineal; trasladando funciones lineales en el plano cartesiano; determinando el cambio constante; relacionándola con el interés simple.", "OA11": "Desarrollar las fórmulas para encontrar el área de superficies y el volumen de prismas rectos con diferentes bases y cilindros: estimando área y volumen; desplegando la red de prismas; aplicando las fórmulas a problemas geométricos.", "OA12": "Explicar, de manera concreta, pictórica y simbólica, la validez del teorema de Pitágoras y aplicarlo en la resolución de problemas geométricos y de la vida diaria.", "OA13": "Describir la posición y el movimiento (traslaciones, rotaciones y reflexiones) de figuras 2D, usando vectores para traslación y ejes del plano cartesiano como ejes de reflexión.", "OA14": "Componer rotaciones, traslaciones y reflexiones en el plano cartesiano y en el espacio, de manera manual y/o con software educativo.", "OA15": "Mostrar que comprenden las medidas de posición, percentiles y cuartiles: identificando la población sobre o bajo el percentil; representándolas con diagramas de cajón; utilizándolas para comparar poblaciones.", "OA16": "Evaluar la forma en que los datos están presentados: comparando la información de los mismos datos en distintos tipos de gráficos; detectando manipulaciones de gráficos para representar datos.", "OA17": "Explicar el principio combinatorio multiplicativo: a partir de situaciones concretas; representándolo con tablas y árboles regulares; utilizándolo para calcular la probabilidad de un evento compuesto."}, "I": {"OA1": "Calcular operaciones con números racionales en forma simbólica.", "OA2": "Mostrar que comprenden las potencias de base racional y exponente entero: transfiriendo propiedades de la multiplicación y división de potencias; relacionándolas con el crecimiento y decrecimiento de cantidades; resolviendo problemas.", "OA3": "Desarrollar los productos notables de manera concreta, pictórica y simbólica: transformando productos en sumas y viceversa; completando el cuadrado del binomio; utilizándolas en la reducción de expresiones algebraicas.", "OA4": "Resolver sistemas de ecuaciones lineales (2x2) relacionados con problemas de la vida diaria y de otras asignaturas.", "OA5": "Graficar relaciones lineales en dos variables de la forma f(x, y) = ax + by: creando tablas de valores; representando una ecuación lineal en un gráfico; escribiendo la relación entre las variables de un gráfico dado.", "OA6": "Desarrollar la fórmula de los valores del área y del perímetro de sectores y segmentos circulares, resolviendo problemas de la vida diaria y de otras asignaturas.", "OA7": "Desarrollar las fórmulas para encontrar el área de la superficie y el volumen del cono: desplegando la red del cono; experimentando para encontrar la relación entre el volumen del cilindro y el cono; aplicando las fórmulas a problemas.", "OA8": "Mostrar que comprenden el concepto de homotecia: relacionándola con la perspectiva y el ojo humano; midiendo segmentos para determinar sus propiedades; aplicando propiedades en la construcción de objetos; resolviendo problemas cotidianos.", "OA9": "Desarrollar el teorema de Tales mediante las propiedades de la homotecia, para aplicarlo en la resolución de problemas.", "OA10": "Aplicar propiedades de semejanza y de proporcionalidad a modelos a escala y otras situaciones de la vida diaria y otras asignaturas.", "OA11": "Representar el concepto de homotecia de forma vectorial, relacionándolo con el producto de un vector por un escalar, de manera manual y/o con software educativo.", "OA12": "Registrar distribuciones de dos características distintas, de una misma población, en una tabla de doble entrada y en un gráfico de dispersión.", "OA13": "Comparar poblaciones mediante la confección de gráficos xy para dos atributos de muestras: utilizando nubes de puntos en dos colores; separando la nube por medio de una recta trazada de manera intuitiva.", "OA14": "Desarrollar las reglas de las probabilidades, la regla aditiva, la regla multiplicativa y la combinación de ambas, de manera concreta, pictórica y simbólica.", "OA15": "Mostrar que comprenden el concepto de azar: experimentando con la tabla de Galton y paseos aleatorios; realizando análisis estadísticos con frecuencias relativas; utilizando probabilidades para describir comportamiento azaroso."}, "II": {"OA1": "Realizar cálculos y estimaciones que involucren operaciones con números reales: utilizando la descomposición de raíces y sus propiedades; combinando raíces con números racionales; resolviendo problemas en contextos diversos.", "OA2": "Mostrar que comprenden las relaciones entre potencias, raíces enésimas y logaritmos: comparando representaciones en la recta numérica; convirtiendo raíces enésimas a potencias de exponente racional; describiendo la relación potencias-logaritmos.", "OA3": "Mostrar que comprenden la función cuadrática f(x)= ax² + bx + c: reconociéndola en situaciones de la vida diaria; representándola en tablas y gráficos; determinando puntos especiales de su gráfica; seleccionándola como modelo de cambio cuadrático.", "OA4": "Resolver ecuaciones cuadráticas de la forma ax² = b, (ax + b)² = c, ax² + bx = 0, ax² + bx = c con a, b, c números racionales y a ≠ 0.", "OA5": "Mostrar que comprenden la inversa de una función: utilizando la metáfora de una máquina; representándola por medio de tablas y gráficos; usando la reflexión en el plano cartesiano; calculando las inversas de funciones lineales y cuadráticas.", "OA6": "Explicar el cambio porcentual constante en intervalos de tiempo: por medio de situaciones de la vida real; identificándolo con el interés compuesto; representándolo concreta, pictórica y simbólicamente; resolviendo problemas de la vida diaria.", "OA7": "Desarrollar las fórmulas del área de la superficie y del volumen de la esfera: conjeturando la fórmula; representando de manera concreta y simbólica; resolviendo problemas de la vida diaria y de geometría.", "OA8": "Mostrar que comprenden las razones trigonométricas de seno, coseno y tangente en triángulos rectángulos: relacionándolas con la semejanza y los ángulos; explicándolas pictórica y simbólicamente; aplicándolas para determinar ángulos o medidas; resolviendo problemas.", "OA9": "Aplicar las razones trigonométricas en diversos contextos, en la composición y descomposición de vectores y determinar la resultante.", "OA10": "Mostrar que comprenden las variables aleatorias finitas: definiendo la variable; determinando los posibles valores de la incógnita; calculando su probabilidad; graficando sus distribuciones.", "OA11": "Utilizar permutaciones y la combinatoria sencilla para calcular probabilidades de eventos y resolver problemas de la vida diaria y de otras asignaturas.", "OA12": "Mostrar que comprenden el rol de la probabilidad en la sociedad: revisando informaciones de los medios; identificando suposiciones basadas en probabilidades; explicando cómo una probabilidad puede sustentar suposiciones opuestas."}};
+
+
+
+// ══════════════════════════════════════════
+// STATE & HELPERS
+// ══════════════════════════════════════════
+let filtro='todos', currentPage='resumen', charts={}, selLec=null, selMat=null, simceFiltro='todos', simceLecturaSort='desc', simceMatSort='desc';
+const C={lec:'#38bdf8',mat:'#f59e0b',alto:'#10b981',bajo:'#ef4444',hc:'#a78bfa',c1:'#10b981',c2:'#38bdf8',grid:'rgba(30,45,69,.6)',txt:'#6b7fa3'};
+const L40=50, L50=66.7;
+
+function filt(arr){ return filtro==='todos'?arr:arr.filter(d=>d.ciclo===filtro); }
+function avg(arr){ return arr.length?+(arr.reduce((s,v)=>s+v,0)/arr.length).toFixed(1):0; }
+function p2n(p){ return Math.min(7,Math.max(1,+(p/100*6+1).toFixed(1))); }
+function cat(p){ return p<L40?'NL':p<L50?'PL':'L'; }
+function cProm(v){ return v>=L50?C.alto:v>=L40?C.mat:C.bajo; }
+function cBar(v){ return v>=L50?'rgba(16,185,129,.45)':v>=L40?'rgba(245,158,11,.45)':'rgba(239,68,68,.45)'; }
+function cPromSafe(v){ return (v==null||Number.isNaN(v))?'rgba(107,127,163,.65)':cProm(v); }
+function cBarSafe(v){ return (v==null||Number.isNaN(v))?'rgba(107,127,163,.25)':cBar(v); }
+function statusColors(vals){ return { backgroundColor:vals.map(cBarSafe), borderColor:vals.map(cPromSafe) }; }
+function chip(p){ const c=cat(p).toLowerCase(); return `<span class="chip-${c}">${cat(p)} (${p2n(p)})</span>`; }
+function kill(id){ if(charts[id]){charts[id].destroy();delete charts[id];} }
+function courseKey(label){ return (label||'').toString().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/[^A-Z0-9]/g,''); }
+function teacherFor(label, area){
+  const key=courseKey(label);
+  const row=TEACHERS[key];
+  if(!row) return '—';
+  return row[area]||'—';
+}
+function shortTeacherName(name){
+  if(!name || name==='—') return '—';
+  const parts=String(name).trim().split(/\s+/).filter(Boolean);
+  if(!parts.length) return '—';
+  if(parts.length===1) return parts[0];
+  const first=parts[0];
+  const last=parts[parts.length-1];
+  return `${first} ${last.charAt(0).toUpperCase()}.`;
+}
+function normCourse(v){ return (v||'').toUpperCase().replace(/\s+/g,'').replaceAll('º','°'); }
+function setToolsMsg(msg,color='var(--muted)'){ const el=document.getElementById('tools-msg'); if(el){ el.textContent=msg; el.style.color=color; } }
+
+function lineaRef(){
+  return {
+    id:'lr',
+    afterDatasetsDraw(ch){
+      const {ctx,chartArea,scales}=ch;
+      if(!scales?.y || !chartArea) return;
+      const yRaw=scales.y.getPixelForValue(L40);
+      if(Number.isNaN(yRaw) || yRaw<chartArea.top || yRaw>chartArea.bottom) return;
+      const y=Math.round(yRaw)+0.5;
+      const label='4,0';
+
+      ctx.save();
+      // Línea umbral (nota 4,0 = 50%) con mayor contraste
+      ctx.setLineDash([7,5]);
+      ctx.strokeStyle='rgba(248,113,113,.92)';
+      ctx.lineWidth=2;
+      ctx.beginPath();
+      ctx.moveTo(chartArea.left+1,y);
+      ctx.lineTo(chartArea.right-1,y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Marca final para mejorar legibilidad en fondos con barras
+      ctx.fillStyle='rgba(248,113,113,.95)';
+      ctx.beginPath();
+      ctx.arc(chartArea.right-1,y,2.5,0,Math.PI*2);
+      ctx.fill();
+
+      // Etiqueta dentro de una cápsula para evitar que se pierda con el fondo
+      ctx.font='700 10px JetBrains Mono,monospace';
+      const tw=ctx.measureText(label).width;
+      const bw=tw+10, bh=16;
+      const bx=chartArea.right-bw-6;
+      const edge=6;
+      // Reubicar etiqueta en pantallas pequeñas cuando la línea está muy cerca de bordes
+      let by=y-bh/2;
+      if((y-chartArea.top) < (bh+edge)){ // cerca del borde superior: bajar etiqueta
+        by=y+edge;
+      } else if((chartArea.bottom-y) < (bh+edge)){ // cerca del borde inferior: subir etiqueta
+        by=y-bh-edge;
+      }
+      by=Math.max(chartArea.top+2, Math.min(by, chartArea.bottom-bh-2));
+      const r=5;
+      ctx.beginPath();
+      ctx.moveTo(bx+r,by);
+      ctx.lineTo(bx+bw-r,by);
+      ctx.quadraticCurveTo(bx+bw,by,bx+bw,by+r);
+      ctx.lineTo(bx+bw,by+bh-r);
+      ctx.quadraticCurveTo(bx+bw,by+bh,bx+bw-r,by+bh);
+      ctx.lineTo(bx+r,by+bh);
+      ctx.quadraticCurveTo(bx,by+bh,bx,by+bh-r);
+      ctx.lineTo(bx,by+r);
+      ctx.quadraticCurveTo(bx,by,bx+r,by);
+      ctx.closePath();
+      ctx.fillStyle='rgba(10,14,26,.92)';
+      ctx.fill();
+      ctx.strokeStyle='rgba(248,113,113,.95)';
+      ctx.lineWidth=1;
+      ctx.stroke();
+
+      ctx.fillStyle='rgba(248,113,113,1)';
+      ctx.textAlign='left';
+      ctx.textBaseline='middle';
+      ctx.fillText(label,bx+5,by+bh/2+0.5);
+      ctx.restore();
+    }
+  };
+}
+
+function fmtBarLabel(v, mode){
+  if(v==null || Number.isNaN(+v)) return '';
+  const n=+v;
+  const base=(Math.round(n*10)%10===0)?String(Math.round(n)):n.toFixed(1);
+  return mode==='number' ? base : `${base}%`;
+}
+
+function parseColorRgb(input){
+  const s=String(input||'').trim();
+  if(!s) return null;
+  const hx=s.match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i);
+  if(hx){
+    let h=hx[1];
+    if(h.length===3) h=h.split('').map(c=>c+c).join('');
+    const n=parseInt(h,16);
+    return {r:(n>>16)&255,g:(n>>8)&255,b:n&255};
+  }
+  const rgb=s.match(/^rgba?\(([^)]+)\)$/i);
+  if(rgb){
+    const p=rgb[1].split(',').map(v=>parseFloat(v.trim()));
+    if(p.length>=3 && p.every((v,i)=>i<3?Number.isFinite(v):true)){
+      return {r:Math.max(0,Math.min(255,p[0])),g:Math.max(0,Math.min(255,p[1])),b:Math.max(0,Math.min(255,p[2]))};
+    }
+  }
+  return null;
+}
+
+function labelContrastForBg(bg){
+  const c=parseColorRgb(bg);
+  if(!c) return {fill:'rgba(245,250,255,.98)',stroke:'rgba(8,12,22,.9)'};
+  const srgb=[c.r,c.g,c.b].map(v=>v/255).map(v=>v<=0.03928?v/12.92:Math.pow((v+0.055)/1.055,2.4));
+  const lum=0.2126*srgb[0]+0.7152*srgb[1]+0.0722*srgb[2];
+  if(lum>0.55) return {fill:'rgba(9,16,30,.98)',stroke:'rgba(255,255,255,.92)'};
+  return {fill:'rgba(245,250,255,.98)',stroke:'rgba(8,12,22,.9)'};
+}
+
+function barValueLabelsPlugin(){
+  return {
+    id:'barValueLabels',
+    afterDatasetsDraw(chart){
+      const cfg=chart?.options?.plugins?.barValueLabels;
+      if(cfg && cfg.display===false) return;
+      const ctx=chart?.ctx, area=chart?.chartArea;
+      if(!ctx || !area) return;
+      const dsAll=chart?.data?.datasets||[];
+      if(!dsAll.length) return;
+
+      const stacked=!!(chart?.options?.scales?.x?.stacked || chart?.options?.scales?.y?.stacked);
+      ctx.save();
+      ctx.textAlign='center';
+      ctx.font='700 10px JetBrains Mono, monospace';
+
+      dsAll.forEach((ds,di)=>{
+        const meta=chart.getDatasetMeta(di);
+        if(!meta || meta.hidden || meta.type!=='bar') return;
+        const mode=ds.valueLabelMode || cfg?.mode || 'percent';
+        const vals=Array.isArray(ds.data)?ds.data:[];
+        meta.data.forEach((bar,idx)=>{
+          const raw=vals[idx];
+          if(raw==null || !Number.isFinite(+raw)) return;
+          if(!bar) return;
+
+          const x=bar.x;
+          const h=Math.abs((bar.base??bar.y)-bar.y);
+          if(!Number.isFinite(x) || h<8) return;
+
+          const label=fmtBarLabel(raw,mode);
+          if(!label) return;
+
+          // Forzar etiqueta dentro de la barra en todos los casos
+          const yTop=Math.min(bar.y, bar.base??bar.y);
+          const yBottom=Math.max(bar.y, bar.base??bar.y);
+          const barW=Math.max(1,Math.abs(bar.width||0));
+          const barLeft=bar.x-(barW/2);
+          const barH=Math.max(1,yBottom-yTop);
+          const padX=3, padY=2;
+          const availW=Math.max(1,barW-(padX*2));
+          const availH=Math.max(1,barH-(padY*2));
+          if(availW<10 || availH<8) return;
+
+          // Tamaño de fuente dinámico que siempre cabe dentro de la barra
+          let fontSize=Math.min(12,Math.max(6,Math.floor(availH*0.62)));
+          while(fontSize>=6){
+            ctx.font=`700 ${fontSize}px JetBrains Mono, monospace`;
+            const tw=ctx.measureText(label).width;
+            if(tw<=availW) break;
+            fontSize-=1;
+          }
+          if(fontSize<6) return;
+
+          let y, baseline;
+          if(stacked || h<22){
+            y=yTop + ((yBottom-yTop)/2);
+            baseline='middle';
+          }else{
+            y=yTop+Math.max(4,Math.floor(fontSize*0.9));
+            baseline='top';
+          }
+          y=Math.max(yTop+padY, Math.min(y, yBottom-padY));
+
+          const bg=bar?.options?.backgroundColor || (Array.isArray(ds.backgroundColor)?ds.backgroundColor[idx]:ds.backgroundColor);
+          const lc=labelContrastForBg(bg);
+          ctx.fillStyle=lc.fill;
+          ctx.strokeStyle=lc.stroke;
+          ctx.lineWidth=Math.max(1.6,Math.round(fontSize*0.24));
+          ctx.textBaseline=baseline;
+
+          // Recorta la etiqueta al rectángulo de la barra para que nunca salga fuera
+          ctx.save();
+          ctx.beginPath();
+          ctx.rect(barLeft+padX,yTop+padY,Math.max(1,barW-(padX*2)),Math.max(1,barH-(padY*2)));
+          ctx.clip();
+          ctx.strokeText(label,x,y);
+          ctx.fillText(label,x,y);
+          ctx.restore();
+        });
+      });
+      ctx.restore();
+    }
+  };
+}
+
+function circularValueLabelsPlugin(){
+  return {
+    id:'circularValueLabels',
+    afterDatasetsDraw(chart){
+      const type=chart?.config?.type;
+      if(!['doughnut','pie','polarArea'].includes(type)) return;
+      const cfg=chart?.options?.plugins?.circularValueLabels;
+      if(cfg && cfg.display===false) return;
+      const ctx=chart?.ctx;
+      if(!ctx) return;
+      const dsAll=chart?.data?.datasets||[];
+      if(!dsAll.length) return;
+
+      ctx.save();
+      dsAll.forEach((ds,di)=>{
+        const meta=chart.getDatasetMeta(di);
+        if(!meta || meta.hidden) return;
+        const vals=Array.isArray(ds.data)?ds.data:[];
+        meta.data.forEach((arc,idx)=>{
+          const raw=vals[idx];
+          if(raw==null || !Number.isFinite(+raw) || !arc) return;
+          if(!Number.isFinite(arc.startAngle) || !Number.isFinite(arc.endAngle)) return;
+
+          const label=fmtBarLabel(raw, ds.valueLabelMode || cfg?.mode || 'percent');
+          if(!label) return;
+
+          const start=arc.startAngle;
+          const end=arc.endAngle;
+          const span=Math.abs(end-start);
+          if(span<0.16) return;
+
+          const inner=Math.max(0,arc.innerRadius||0);
+          const outer=Math.max(inner+1,arc.outerRadius||0);
+          const ring=Math.max(1,outer-inner);
+          const mid=(start+end)/2;
+          // Ubicar etiqueta en el centro real del anillo para evitar choque con bordes
+          const r=inner + ring*0.5;
+          const x=arc.x + Math.cos(mid)*r;
+          const y=arc.y + Math.sin(mid)*r;
+
+          // Margen de seguridad adicional para no tocar la circunferencia interna/externa
+          const pad=7;
+          const availW=Math.max(1,(span*r)-(pad*2));
+          const availH=Math.max(1,ring-(pad*2));
+          if(availW<10 || availH<8) return;
+
+          // Fuente más conservadora en circulares para preservar legibilidad sin colisiones
+          let fontSize=Math.min(11,Math.max(6,Math.floor(Math.min(availH*0.62, availW/Math.max(1,label.length*0.66)))));
+          while(fontSize>=6){
+            ctx.font=`700 ${fontSize}px JetBrains Mono, monospace`;
+            if(ctx.measureText(label).width<=availW) break;
+            fontSize-=1;
+          }
+          if(fontSize<6) return;
+
+          const bg=arc?.options?.backgroundColor || (Array.isArray(ds.backgroundColor)?ds.backgroundColor[idx]:ds.backgroundColor);
+          const lc=labelContrastForBg(bg);
+          ctx.font=`700 ${fontSize}px JetBrains Mono, monospace`;
+          ctx.textAlign='center';
+          ctx.textBaseline='middle';
+          ctx.fillStyle=lc.fill;
+          ctx.strokeStyle=lc.stroke;
+          ctx.lineWidth=Math.max(1.2,Math.round(fontSize*0.2));
+
+          // Recorta la etiqueta al segmento para que siempre quede contenida
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(arc.x,arc.y,outer-pad,start,end);
+          if(inner>2){
+            ctx.arc(arc.x,arc.y,inner+pad,end,start,true);
+          }else{
+            ctx.lineTo(arc.x,arc.y);
+          }
+          ctx.closePath();
+          ctx.clip();
+          ctx.strokeText(label,x,y);
+          ctx.fillText(label,x,y);
+          ctx.restore();
+        });
+      });
+      ctx.restore();
+    }
+  };
+}
+if(typeof Chart!=='undefined' && typeof Chart.register==='function'){
+  Chart.register(barValueLabelsPlugin(), circularValueLabelsPlugin());
+}
+
+const CD = {
+  responsive:true, maintainAspectRatio:true,
+  plugins:{
+    legend:{labels:{color:C.txt,font:{family:'Sora',size:11},boxWidth:12}},
+    tooltip:{backgroundColor:'#1a2236',borderColor:'#1e2d45',borderWidth:1,titleColor:'#e8edf5',bodyColor:'#6b7fa3',padding:10},
+    barValueLabels:{display:true,mode:'percent'},
+    circularValueLabels:{display:true,mode:'percent'}
+  },
+  scales:{ x:{ticks:{color:C.txt,font:{family:'JetBrains Mono',size:10}},grid:{color:C.grid}}, y:{ticks:{color:C.txt,font:{family:'JetBrains Mono',size:10}},grid:{color:C.grid},min:0,max:100} }
+};
+function ttNota(){ return {callbacks:{label:ctx=>`${ctx.raw}%  →  Nota ${p2n(ctx.raw)}  [${cat(ctx.raw)}]`}}; }
+function simceSortLabel(){ return simceLecturaSort==='asc'?'Orden: Ascendente':'Orden: Descendente'; }
+function simceMatSortLabel(){ return simceMatSort==='asc'?'Orden: Ascendente':'Orden: Descendente'; }
+
+// ══════════════════════════════════════════
+// NAV & FILTRO
+// ══════════════════════════════════════════
+function showPage(p){
+  currentPage=p;
+  document.querySelectorAll('.page').forEach(e=>e.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  const pages=['resumen','ranking','brecha','habilidades','ejes','prioridades','simce','detalle'];
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',pages[i]===p));
+  renderPage(p);
+  requestAnimationFrame(()=>resizeAllCharts());
+}
+function setFiltro(f){
+  filtro=f;
+  const map={'todos':'f-todos','1° Ciclo':'f-1c','2° Ciclo':'f-2c','Ens. Media':'f-em'};
+  Object.entries(map).forEach(([k,id])=>{ const el=document.getElementById(id); if(el) el.className='filter-btn'+(k===f?' act':''); });
+  selLec=null; selMat=null;
+  setToolsMsg('');
+  updateHeader(); renderPage(currentPage);
+  requestAnimationFrame(()=>resizeAllCharts());
+}
+function setSimceFiltro(v){
+  simceFiltro=v;
+  const ids={'todos':'sf-todos','4':'sf-4','6':'sf-6','II':'sf-II'};
+  Object.entries(ids).forEach(([k,id])=>{
+    const el=document.getElementById(id);
+    if(el) el.className='simce-filter-btn'+(k===v?' active':'');
+  });
+  if(currentPage==='simce'){
+    renderSimce();
+    requestAnimationFrame(()=>resizeAllCharts());
+  }
+}
+function toggleSimceLecturaSort(){
+  simceLecturaSort = simceLecturaSort==='asc' ? 'desc' : 'asc';
+  const btn=document.getElementById('btn-sort-simce-lectura');
+  if(btn) btn.textContent=simceSortLabel();
+  if(currentPage==='simce'){
+    renderSimce();
+    requestAnimationFrame(()=>resizeAllCharts());
+  }
+}
+function toggleSimceMatSort(){
+  simceMatSort = simceMatSort==='asc' ? 'desc' : 'asc';
+  const btn=document.getElementById('btn-sort-simce-mat');
+  if(btn) btn.textContent=simceMatSortLabel();
+  if(currentPage==='simce'){
+    renderSimce();
+    requestAnimationFrame(()=>resizeAllCharts());
+  }
+}
+
+function resizeAllCharts(){
+  Object.values(charts).forEach(ch=>{
+    if(ch && typeof ch.resize==='function') ch.resize();
+  });
+}
+
+// ══════════════════════════════════════════
+// HEADER
+// ══════════════════════════════════════════
+function updateHeader(){
+  const lec=filt(RAW.lectura), mat=filt(RAW.matematica);
+  document.getElementById('stat-est').textContent=lec.reduce((s,c)=>s+c.n,0).toLocaleString('es-CL');
+  document.getElementById('stat-cur').textContent=new Set([...lec.map(c=>c.label),...mat.map(c=>c.label)]).size;
+  document.getElementById('stat-lec').textContent=avg(lec.map(c=>c.prom))+'%';
+  document.getElementById('stat-mat').textContent=avg(mat.map(c=>c.prom))+'%';
+}
+
+// ══════════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════════
+function renderPage(p){
+  if(p==='resumen') renderResumen();
+  else if(p==='ranking') renderRanking();
+  else if(p==='brecha') renderBrecha();
+  else if(p==='habilidades') renderHabilidades();
+  else if(p==='ejes') renderEjes();
+  else if(p==='detalle') renderDetalle();
+  else if(p==='prioridades') renderPrioridades();
+  else if(p==='simce') renderSimce();
+}
+
+function byNivel(arr){
+  const m={};
+  arr.forEach(c=>{ const k=c.nivel; if(!m[k])m[k]=[]; m[k].push(c.prom); });
+  return ['2','3','4','5','6','7','8','I','II'].filter(n=>m[n]).map(n=>({nivel:n.match(/^\d$/)?n+'°':n,prom:avg(m[n])}));
+}
+
+// ── RESUMEN ──
+function renderResumen(){
+  const lec=filt(RAW.lectura), mat=filt(RAW.matematica);
+  const pl=avg(lec.map(c=>c.prom)), pm=avg(mat.map(c=>c.prom));
+  const ml=[...lec].sort((a,b)=>b.prom-a.prom)[0], mm=[...mat].sort((a,b)=>b.prom-a.prom)[0];
+  document.getElementById('k-pl').innerHTML=pl+'<span>%</span>';
+  document.getElementById('k-pm').innerHTML=pm+'<span>%</span>';
+  document.getElementById('k-pl-sub').textContent=lec.length+' cursos · '+lec.reduce((s,c)=>s+c.n,0)+' estudiantes';
+  document.getElementById('k-pm-sub').textContent=mat.length+' cursos · '+mat.reduce((s,c)=>s+c.n,0)+' estudiantes';
+  if(ml){document.getElementById('k-ml').innerHTML=ml.prom+'<span>%</span>';document.getElementById('k-ml-n').textContent=ml.label+' — Nota '+p2n(ml.prom)+' ['+cat(ml.prom)+']';}
+  if(mm){document.getElementById('k-mm').innerHTML=mm.prom+'<span>%</span>';document.getElementById('k-mm-n').textContent=mm.label+' — Nota '+p2n(mm.prom)+' ['+cat(mm.prom)+']';}
+
+  const nl=byNivel(lec), nm=byNivel(mat);
+  const valsLn=nl.map(n=>n.prom), valsMn=nm.map(n=>n.prom);
+  kill('ln'); charts['ln']=new Chart(document.getElementById('ch-ln'),{type:'bar',data:{labels:nl.map(n=>n.nivel),datasets:[{label:'Promedio %',data:valsLn,...statusColors(valsLn),borderWidth:2,borderRadius:4}]},options:{...CD,plugins:{...CD.plugins,legend:{display:false},tooltip:ttNota()},layout:{padding:{right:8,left:2}}},plugins:[lineaRef()]});
+  kill('mn'); charts['mn']=new Chart(document.getElementById('ch-mn'),{type:'bar',data:{labels:nm.map(n=>n.nivel),datasets:[{label:'Promedio %',data:valsMn,...statusColors(valsMn),borderWidth:2,borderRadius:4}]},options:{...CD,plugins:{...CD.plugins,legend:{display:false},tooltip:ttNota()},layout:{padding:{right:8,left:2}}},plugins:[lineaRef()]});
+
+  const all=[...new Set([...lec.map(c=>c.label),...mat.map(c=>c.label)])].sort();
+  const lm=Object.fromEntries(lec.map(c=>[c.label,c.prom])), mm2=Object.fromEntries(mat.map(c=>[c.label,c.prom]));
+  kill('comp'); charts['comp']=new Chart(document.getElementById('ch-comp'),{type:'line',data:{labels:all,datasets:[
+    {label:'Lectura',data:all.map(l=>lm[l]??null),borderColor:C.lec,backgroundColor:'rgba(56,189,248,.08)',borderWidth:2,tension:.3,pointRadius:3,fill:true},
+    {label:'Matemática',data:all.map(l=>mm2[l]??null),borderColor:C.mat,backgroundColor:'rgba(245,158,11,.08)',borderWidth:2,tension:.3,pointRadius:3,fill:true},
+    {label:'Mínimo 4,0',data:all.map(()=>L40),borderColor:'rgba(239,68,68,.5)',borderDash:[5,4],borderWidth:1.5,pointRadius:0,fill:false}
+  ]},options:{...CD,plugins:{...CD.plugins,tooltip:{...CD.plugins.tooltip,callbacks:{label:ctx=>ctx.datasetIndex<2?` ${ctx.dataset.label}: ${ctx.raw}%  →  ${p2n(ctx.raw)} [${cat(ctx.raw)}]`:` Aprobación mínima 4,0 (50%)`}}},layout:{padding:{right:8,left:2}}},plugins:[lineaRef()]});
+  renderInsights(lec, mat);
+}
+
+// ── RANKING ──
+function renderRanking(){
+  const lec=filt(RAW.lectura), mat=filt(RAW.matematica);
+  buildRT('rt-lh',[...lec].sort((a,b)=>b.prom-a.prom).slice(0,10),'lenguaje');
+  buildRT('rt-mh',[...mat].sort((a,b)=>b.prom-a.prom).slice(0,10),'matematica');
+  buildRT('rt-ll',[...lec].sort((a,b)=>a.prom-b.prom).slice(0,10),'lenguaje');
+  buildRT('rt-ml',[...mat].sort((a,b)=>a.prom-b.prom).slice(0,10),'matematica');
+}
+function buildRT(id,data,area){
+  const el=document.getElementById(id);
+  el.innerHTML=`<thead><tr><th>#</th><th>Curso</th><th>Ciclo</th><th>N°</th><th>Profesor/a</th><th>Logro</th><th style="min-width:140px">Promedio</th></tr></thead>`;
+  const tb=document.createElement('tbody');
+  data.forEach((c,i)=>{
+    const cc=c.ciclo==='1° Ciclo'?'ciclo-1':c.ciclo==='2° Ciclo'?'ciclo-2':'ciclo-em';
+    const cl=cProm(c.prom);
+    const profFull=teacherFor(c.label,area);
+    const prof=shortTeacherName(profFull);
+    const tr=document.createElement('tr');
+    tr.title='Abrir detalle del curso';
+    tr.innerHTML=`<td class="rank-num">${String(i+1).padStart(2,'0')}</td><td class="rank-curso">${c.label}</td><td><span class="rank-ciclo ${cc}">${c.ciclo}</span></td><td style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted)">${c.n}</td><td style="font-size:12px;white-space:nowrap" title="${profFull}">${prof}</td><td>${chip(c.prom)}</td><td><div class="prom-bar-wrap"><div class="prom-bar-bg"><div class="prom-bar-fill" style="width:${c.prom}%;background:${cl}"></div></div><span class="prom-val" style="color:${cl}">${c.prom}%</span></div></td>`;
+    tr.addEventListener('click',()=>goToCourse(c.label));
+    tb.appendChild(tr);
+  });
+  el.appendChild(tb);
+}
+
+// ── BRECHA ──
+function renderBrecha(){
+  const lec=filt(RAW.lectura), mat=filt(RAW.matematica);
+  const nl=byNivel(lec), nm=byNivel(mat);
+  const niv=nl.map(n=>n.nivel).filter(n=>nm.find(m=>m.nivel===n));
+  const bv=niv.map(n=>{const l=nl.find(x=>x.nivel===n)?.prom||0,m=nm.find(x=>x.nivel===n)?.prom||0;return +(l-m).toFixed(1);});
+  kill('bn'); charts['bn']=new Chart(document.getElementById('ch-bn'),{type:'bar',data:{labels:niv,datasets:[{label:'L−M',data:bv,backgroundColor:bv.map(v=>v>0?'rgba(56,189,248,.4)':'rgba(245,158,11,.4)'),borderColor:bv.map(v=>v>0?C.lec:C.mat),borderWidth:2,borderRadius:4}]},options:{...CD,scales:{...CD.scales,y:{...CD.scales.y,min:-30,max:30}},plugins:{...CD.plugins,legend:{display:false},tooltip:{...CD.plugins.tooltip,callbacks:{label:ctx=>` Brecha: ${ctx.raw>0?'+':''}${ctx.raw}%`}}}}});
+
+  const lm=Object.fromEntries(lec.map(c=>[c.label,c])), mm=Object.fromEntries(mat.map(c=>[c.label,c]));
+  const sd=Object.keys(lm).filter(k=>mm[k]).map(k=>({x:lm[k].prom,y:mm[k].prom,label:k}));
+  kill('sc'); charts['sc']=new Chart(document.getElementById('ch-sc'),{type:'scatter',data:{datasets:[{label:'Cursos',data:sd,backgroundColor:sd.map(d=>cBar(Math.min(d.x,d.y))),borderColor:sd.map(d=>cProm(Math.min(d.x,d.y))),borderWidth:1,pointRadius:6}]},options:{...CD,scales:{x:{...CD.scales.x,title:{display:true,text:'Lectura %',color:C.txt},min:0,max:100},y:{...CD.scales.y,title:{display:true,text:'Matemática %',color:C.txt},min:0,max:100}},plugins:{...CD.plugins,tooltip:{...CD.plugins.tooltip,callbacks:{label:ctx=>[`${ctx.raw.label}`,`Lectura: ${ctx.raw.x}% (Nota ${p2n(ctx.raw.x)} — ${cat(ctx.raw.x)})`,`Mat: ${ctx.raw.y}% (Nota ${p2n(ctx.raw.y)} — ${cat(ctx.raw.y)})`]}}}}});
+
+  const cont=document.getElementById('brecha-cursos'); cont.innerHTML='';
+  Object.keys(lm).sort().forEach(label=>{
+    const l=lm[label], m=mm[label]; if(!l||!m)return;
+    const d=+(l.prom-m.prom).toFixed(1);
+    const dc=d>5?C.lec:d<-5?C.mat:'var(--text)';
+    const row=document.createElement('div'); row.className='brecha-row';
+    row.innerHTML=`<div class="brecha-label">${label}</div><div class="brecha-bar-wrap"><div class="brecha-bar" style="width:${l.prom}%;background:rgba(56,189,248,.25);color:var(--lectura)">${l.prom}% (${p2n(l.prom)})</div></div><div class="brecha-bar-wrap"><div class="brecha-bar" style="width:${m.prom}%;background:rgba(245,158,11,.25);color:var(--mat)">${m.prom}% (${p2n(m.prom)})</div></div><div class="brecha-diff" style="color:${dc}">${d>0?'+':''}${d}%</div>`;
+    cont.appendChild(row);
+  });
+}
+
+// ── HABILIDADES ──
+function renderHabilidades(){
+  const lec=filt(RAW.lectura), mat=filt(RAW.matematica);
+  const ejes=['Localizar','Interpretar y relacionar','Reflexionar'];
+  const pe=ejes.map(e=>avg(lec.map(c=>c.hab[e]).filter(v=>v!=null)));
+  kill('el'); charts['el']=new Chart(document.getElementById('ch-el'),{type:'doughnut',data:{labels:['Localizar','Interpretar','Reflexionar'],datasets:[{data:pe,backgroundColor:['rgba(56,189,248,.7)','rgba(16,185,129,.7)','rgba(167,139,250,.7)'],borderColor:['#38bdf8','#10b981','#a78bfa'],borderWidth:2}]},options:{...CD,cutout:'62%',scales:undefined,plugins:{...CD.plugins,tooltip:{...CD.plugins.tooltip,callbacks:{label:ctx=>` ${ctx.label}: ${ctx.raw}%  →  Nota ${p2n(ctx.raw)} [${cat(ctx.raw)}]`}}}}});
+
+  const ciclos=['1° Ciclo','2° Ciclo','Ens. Media'];
+  const cdata=ciclos.map(ci=>{const cs=lec.filter(x=>x.ciclo===ci);return ejes.map(e=>avg(cs.map(x=>x.hab[e]).filter(v=>v!=null)));});
+  kill('er'); charts['er']=new Chart(document.getElementById('ch-er'),{type:'radar',data:{labels:['Localizar','Interpretar','Reflexionar'],datasets:ciclos.map((ci,i)=>({label:ci,data:cdata[i],borderColor:[C.c1,C.c2,C.hc][i],backgroundColor:['rgba(16,185,129,.1)','rgba(56,189,248,.1)','rgba(167,139,250,.1)'][i],borderWidth:2,pointRadius:4}))},options:{...CD,scales:{r:{ticks:{display:false},grid:{color:C.grid},pointLabels:{color:C.txt,font:{family:'Sora',size:11}},min:0,max:100}}}});
+
+  // Cards por nivel con click
+  const grid=document.getElementById('hab-lec-grid'); grid.innerHTML='';
+  const pn={};
+  lec.forEach(c=>{if(!pn[c.nivel])pn[c.nivel]=[];pn[c.nivel].push(c);});
+  ['2','3','4','5','6','7','8','I','II'].filter(n=>pn[n]).forEach(n=>{
+    const cs=pn[n];
+    const pe2=ejes.map(e=>avg(cs.map(c=>c.hab[e]).filter(v=>v!=null)));
+    const card=document.createElement('div'); card.className='hab-card';
+    const label=n.match(/^\d$/)?n+'° Básico':n+'° EM';
+    card.innerHTML=`<div class="hab-nivel">${label}</div>`+
+      ejes.map((e,i)=>{
+        const s=e==='Interpretar y relacionar'?'Interpretar':e;
+        const cl=cProm(pe2[i]);
+        return `<div class="hab-item" onclick="openEje('${e}',${pe2[i]},'${label}')" title="Ver descripción BC"><div class="hab-name">📖 ${s}</div><div style="display:flex;align-items:center;gap:7px"><div class="hab-bar-bg" style="flex:1"><div class="hab-bar-fill" style="width:${pe2[i]}%;background:${cl}"></div></div><div class="hab-pct" style="color:${cl}">${pe2[i]}% <span style="font-size:9px;opacity:.7">(${p2n(pe2[i])})</span></div></div></div>`;
+      }).join('');
+    grid.appendChild(card);
+  });
+
+  // OA Matemática con click
+  const allOA=new Set(); mat.forEach(c=>Object.keys(c.hab).forEach(k=>allOA.add(k)));
+  const oaS=[...allOA].sort((a,b)=>parseInt(a.replace('OA',''))-parseInt(b.replace('OA','')));
+  const cics=['1° Ciclo','2° Ciclo','Ens. Media'];
+  const ds=cics.map((ci)=>{
+    const cs=mat.filter(c=>c.ciclo===ci);
+    const vals=oaS.map(oa=>avg(cs.map(c=>c.hab[oa]).filter(v=>v!=null)));
+    return {label:ci,data:vals,...statusColors(vals),borderWidth:2,borderRadius:3};
+  });
+  kill('oa');
+  const oaChart=new Chart(document.getElementById('ch-oa'),{type:'bar',data:{labels:oaS,datasets:ds},options:{...CD,plugins:{...CD.plugins,tooltip:{...CD.plugins.tooltip,callbacks:{label:ctx=>` ${ctx.dataset.label} — ${ctx.raw}%  →  ${cat(ctx.raw)}`}}},layout:{padding:{right:8,left:2}}},plugins:[lineaRef()]});
+  charts['oa']=oaChart;
+  // Click en OA del gráfico
+  document.getElementById('ch-oa').onclick=function(e){
+    const pts=oaChart.getElementsAtEventForMode(e,'nearest',{intersect:true},false);
+    if(!pts.length)return;
+    const idx=pts[0].index; const oa=oaS[idx];
+    // Buscar el nivel con más datos para ese OA
+    let nivel=null;
+    const lbl=oaChart.data.datasets[pts[0].datasetIndex].label;
+    const matFilt=mat.filter(c=>c.ciclo===(lbl==='1° Ciclo'?'1° Ciclo':lbl==='2° Ciclo'?'2° Ciclo':'Ens. Media'));
+    if(matFilt.length) nivel=matFilt[0].nivel;
+    const val=oaChart.data.datasets[pts[0].datasetIndex].data[idx];
+    openOA(oa,nivel,val,lbl);
+  };
+}
+
+// ── DETALLE ──
+function renderDetalle(){
+  const lec=filt(RAW.lectura), mat=filt(RAW.matematica);
+  const sl=document.getElementById('sel-lec'); sl.innerHTML='';
+  lec.forEach(c=>{const b=document.createElement('button');b.className='curso-btn'+(selLec===c.label?' selected':'');b.textContent=c.label;b.onclick=()=>{selLec=c.label;renderDetalle();};sl.appendChild(b);});
+  const sm=document.getElementById('sel-mat'); sm.innerHTML='';
+  mat.forEach(c=>{const b=document.createElement('button');b.className='curso-btn'+(selMat===c.label?' selected':'');b.textContent=c.label;b.onclick=()=>{selMat=c.label;renderDetalle();};sm.appendChild(b);});
+  if(!selLec&&lec.length)selLec=lec[0].label;
+  if(!selMat&&mat.length)selMat=mat[0].label;
+  const cl=lec.find(c=>c.label===selLec)||lec[0], cm=mat.find(c=>c.label===selMat)||mat[0];
+
+  if(cl){
+    document.getElementById('dt-tl').textContent=`${cl.label} · ${cl.n} est · ${cl.prom}% · Nota ${p2n(cl.prom)} [${cat(cl.prom)}]`;
+    const ej=Object.keys(cl.hab);
+    const valsDl=ej.map(e=>cl.hab[e]);
+    kill('dl');
+    const dlChart=new Chart(document.getElementById('ch-dl'),{type:'bar',data:{labels:ej.map(e=>e==='Interpretar y relacionar'?'Interpretar':e),datasets:[{label:'%',data:valsDl,...statusColors(valsDl),borderWidth:2,borderRadius:6}]},options:{...CD,plugins:{...CD.plugins,legend:{display:false},tooltip:{...CD.plugins.tooltip,callbacks:{label:ctx=>` ${ctx.raw}%  →  Nota ${p2n(ctx.raw)} [${cat(ctx.raw)}]`}}},layout:{padding:{right:8,left:2}}},plugins:[lineaRef()]});
+    charts['dl']=dlChart;
+    document.getElementById('ch-dl').onclick=function(e){
+      const pts=dlChart.getElementsAtEventForMode(e,'nearest',{intersect:true},false);
+      if(!pts.length)return;
+      openEje(ej[pts[0].index],cl.hab[ej[pts[0].index]],cl.label);
+    };
+  }
+
+  if(cm){
+    document.getElementById('dt-tm').textContent=`${cm.label} · ${cm.n} est · ${cm.prom}% · Nota ${p2n(cm.prom)} [${cat(cm.prom)}]`;
+    const oas=Object.keys(cm.hab);
+    const valsDm=oas.map(o=>cm.hab[o]);
+    kill('dm');
+    const dmChart=new Chart(document.getElementById('ch-dm'),{type:'bar',data:{labels:oas,datasets:[{label:'%',data:valsDm,...statusColors(valsDm),borderWidth:2,borderRadius:4}]},options:{...CD,plugins:{...CD.plugins,legend:{display:false},tooltip:{...CD.plugins.tooltip,callbacks:{label:ctx=>` ${ctx.raw}%  →  Nota ${p2n(ctx.raw)} [${cat(ctx.raw)}]`}}},layout:{padding:{right:8,left:2}}},plugins:[lineaRef()]});
+    charts['dm']=dmChart;
+    document.getElementById('ch-dm').onclick=function(e){
+      const pts=dmChart.getElementsAtEventForMode(e,'nearest',{intersect:true},false);
+      if(!pts.length)return;
+      openOA(oas[pts[0].index],cm.nivel,cm.hab[oas[pts[0].index]],cm.label);
+    };
+  }
+}
+
+// ══════════════════════════════════════════
+// PANEL CURRICULAR — LECTURA
+// ══════════════════════════════════════════
+function openEje(eje, pct, cursoLabel){
+  const info=BC.ejes[eje]; if(!info)return;
+  const nivel=cat(pct);
+  const diagClass=nivel==='L'?'alto':nivel==='PL'?'medio':'bajo';
+  const diagIcon=nivel==='L'?'🟢':nivel==='PL'?'🟡':'🔴';
+  const diagLabel=nivel==='L'?'LOGRADO — Fortaleza detectada':nivel==='PL'?'POR LOGRAR — En desarrollo':'NO LOGRADO — Requiere intervención prioritaria';
+  const sugerencia=nivel==='L'?info.sugerencia_alto:(nivel==='PL'?'Reforzar con ejercicios graduados que desafíen al estudiante a aplicar la habilidad en textos de mayor complejidad.':info.sugerencia_bajo);
+
+  document.getElementById('bc-tag').innerHTML=`<span style="color:${info.color}">${info.tag}</span>`;
+  document.getElementById('bc-title').textContent=eje;
+  document.getElementById('bc-subtitle').textContent=`Resultado en: ${cursoLabel} · ${pct}% · Nota ${p2n(pct)} [${cat(pct)}]`;
+  document.getElementById('bc-body').innerHTML=`
+    <div class="bc-section">
+      <div class="bc-section-title">¿Qué evalúa este eje?</div>
+      <div class="bc-desc">${info.desc}</div>
+    </div>
+    <div class="bc-section">
+      <div class="bc-section-title">Habilidades específicas</div>
+      <ul class="bc-list">${info.habilidades.map(h=>`<li>${h}</li>`).join('')}</ul>
+    </div>
+    <div class="bc-section">
+      <div class="bc-section-title">Resultado del curso</div>
+      <div class="bc-prom-bar"><div class="bc-prom-fill" style="width:${pct}%;background:${cProm(pct)}"></div></div>
+      <div class="bc-prom-meta"><span style="color:var(--muted)">0%</span><span style="color:${cProm(pct)};font-weight:700">${pct}% → Nota ${p2n(pct)}</span><span style="color:var(--muted)">100%</span></div>
+    </div>
+    <div class="bc-section">
+      <div class="bc-section-title">Diagnóstico y recomendación</div>
+      <div class="bc-diag bc-diag-${diagClass}">
+        <div class="bc-diag-icon">${diagIcon}</div>
+        <div class="bc-diag-content">
+          <div class="bc-diag-label">${diagLabel}</div>
+          <div class="bc-diag-text">${sugerencia}</div>
+        </div>
+      </div>
+    </div>
+    <div class="bc-section">
+      <div class="bc-section-title">Referencia Bases Curriculares</div>
+      <div class="bc-desc" style="color:var(--muted);font-size:13px">${info.referencia}</div>
+    </div>`;
+  document.getElementById('bc-overlay').classList.add('open');
+}
+
+// ══════════════════════════════════════════
+// PANEL CURRICULAR — MATEMÁTICA
+// ══════════════════════════════════════════
+function getNivelURL(nivel) {
+  const base = 'https://www.curriculumnacional.cl/curriculum/';
+  const map = {
+    '2':'1o-6o-basico/matematica/2-basico','3':'1o-6o-basico/matematica/3-basico',
+    '4':'1o-6o-basico/matematica/4-basico','5':'1o-6o-basico/matematica/5-basico',
+    '6':'1o-6o-basico/matematica/6-basico','7':'7o-basico-2o-medio/matematica/7-basico',
+    '8':'7o-basico-2o-medio/matematica/8-basico','I':'7o-basico-2o-medio/matematica/1-medio',
+    'II':'7o-basico-2o-medio/matematica/2-medio'
+  };
+  return base + (map[nivel] || '');
+}
+
+function openOA(oa, nivel, pct, cursoLabel){
+  const nivBC=BC_OA[nivel];
+  const desc=nivBC?.[oa];
+  const diagNivel=cat(pct);
+  const diagClass=diagNivel==='L'?'alto':diagNivel==='PL'?'medio':'bajo';
+  const diagIcon=diagNivel==='L'?'🟢':diagNivel==='PL'?'🟡':'🔴';
+  const diagLabel=diagNivel==='L'?'LOGRADO — Fortaleza detectada':diagNivel==='PL'?'POR LOGRAR — En desarrollo':'NO LOGRADO — Requiere intervención prioritaria';
+
+  const sugerencias={
+    'L':`Los estudiantes demuestran dominio de este OA. Se recomienda avanzar hacia desafíos de mayor complejidad y conectar este aprendizaje con nuevos contenidos del nivel.`,
+    'PL':`La mayoría de los estudiantes está en proceso. Reforzar con actividades concretas y pictóricas antes de avanzar al nivel simbólico. Identificar estudiantes en el límite del logro.`,
+    'NL':`Este OA requiere intervención prioritaria. Se recomienda retomar desde representaciones concretas, aplicar estrategias de resolución de problemas contextualizados y revisar los prerrequisitos del nivel anterior.`
+  };
+
+  document.getElementById('bc-tag').innerHTML=`<span style="color:var(--mat)">OA Matemática — ${nivel}° ${nivel.match(/^\d$/)?'Básico':'EM'}</span>`;
+  document.getElementById('bc-title').textContent=oa;
+  document.getElementById('bc-subtitle').textContent=`Resultado en: ${cursoLabel} · ${pct}% · Nota ${p2n(pct)} [${cat(pct)}]`;
+  document.getElementById('bc-body').innerHTML=`
+    <div class="bc-section">
+      <div class="bc-section-title">Descripción del Objetivo de Aprendizaje</div>
+      <div class="bc-desc">${desc||'<em style="color:var(--muted)">Descripción no disponible para este OA en el nivel seleccionado.</em>'}</div>
+    </div>
+    <div class="bc-section">
+      <div class="bc-section-title">Resultado del curso</div>
+      <div class="bc-prom-bar"><div class="bc-prom-fill" style="width:${pct}%;background:${cProm(pct)}"></div></div>
+      <div class="bc-prom-meta"><span style="color:var(--muted)">0%</span><span style="color:${cProm(pct)};font-weight:700">${pct}% → Nota ${p2n(pct)}</span><span style="color:var(--muted)">100%</span></div>
+    </div>
+    <div class="bc-section">
+      <div class="bc-section-title">Diagnóstico y recomendación pedagógica</div>
+      <div class="bc-diag bc-diag-${diagClass}">
+        <div class="bc-diag-icon">${diagIcon}</div>
+        <div class="bc-diag-content">
+          <div class="bc-diag-label">${diagLabel}</div>
+          <div class="bc-diag-text">${sugerencias[diagNivel]}</div>
+        </div>
+      </div>
+    </div>
+    <div class="bc-section">
+      <div class="bc-section-title">Referencia Bases Curriculares</div>
+      <div class="bc-desc" style="color:var(--muted);font-size:13px">
+        Bases Curriculares Matemática ${nivel.match(/^\d$/)?'1°–6° Básico (2012)':'7° Básico – 2° Medio (2015)'} — ${oa}<br>
+        <a href="${getNivelURL(nivel)}" target="_blank" style="color:var(--accent);font-size:12px;text-decoration:none">
+          🔗 Ver en Currículum Nacional →
+        </a>
+      </div>
+    </div>`;
+  document.getElementById('bc-overlay').classList.add('open');
+}
+
+function closeBCPanel(e){
+  if(!e||e.target===document.getElementById('bc-overlay')) document.getElementById('bc-overlay').classList.remove('open');
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.getElementById('bc-overlay').classList.remove('open');});
+
+
+const EJES_MAT = {"2": {"Números y operaciones": ["OA1", "OA2", "OA3", "OA4", "OA5", "OA6", "OA7", "OA8", "OA9", "OA10", "OA11"], "Patrones y álgebra": ["OA12", "OA13"], "Geometría": ["OA14", "OA15", "OA16"], "Medición": ["OA17", "OA18", "OA19"], "Datos y probabilidades": ["OA20", "OA21", "OA22"]}, "3": {"Números y operaciones": ["OA1", "OA2", "OA3", "OA4", "OA5", "OA6", "OA7", "OA8", "OA9", "OA10", "OA11"], "Patrones y álgebra": ["OA12", "OA13"], "Geometría": ["OA14", "OA15", "OA16", "OA17", "OA18"], "Medición": ["OA19", "OA20", "OA21", "OA22"], "Datos y probabilidades": ["OA23", "OA24", "OA25", "OA26"]}, "4": {"Números y operaciones": ["OA1", "OA2", "OA3", "OA4", "OA5", "OA6", "OA7", "OA8", "OA9", "OA10", "OA11", "OA12"], "Patrones y álgebra": ["OA13", "OA14"], "Geometría": ["OA15", "OA16", "OA17", "OA18", "OA19"], "Medición": ["OA20", "OA21", "OA22", "OA23", "OA24"], "Datos y probabilidades": ["OA25", "OA26", "OA27"]}, "5": {"Números y operaciones": ["OA1", "OA2", "OA3", "OA4", "OA5", "OA6", "OA7", "OA8", "OA9", "OA10", "OA11", "OA12", "OA13"], "Patrones y álgebra": ["OA14", "OA15"], "Geometría": ["OA16", "OA17", "OA18"], "Medición": ["OA19", "OA20", "OA21", "OA22"], "Datos y probabilidades": ["OA23", "OA24", "OA25", "OA26", "OA27"]}, "6": {"Números y operaciones": ["OA1", "OA2", "OA3", "OA4", "OA5", "OA6", "OA7", "OA8"], "Patrones y álgebra": ["OA9", "OA10", "OA11"], "Geometría": ["OA12", "OA13", "OA14", "OA15", "OA16", "OA17"], "Medición": ["OA18", "OA19", "OA20", "OA21"], "Datos y probabilidades": ["OA22", "OA23", "OA24"]}, "7": {"Números": ["OA1", "OA2", "OA3", "OA4", "OA5"], "Álgebra y funciones": ["OA6", "OA7", "OA8", "OA9"], "Geometría": ["OA10", "OA11", "OA12", "OA13", "OA14"], "Probabilidad y estadística": ["OA15", "OA16", "OA17", "OA18", "OA19"]}, "8": {"Números": ["OA1", "OA2", "OA3", "OA4", "OA5"], "Álgebra y funciones": ["OA6", "OA7", "OA8", "OA9", "OA10"], "Geometría": ["OA11", "OA12", "OA13", "OA14"], "Probabilidad y estadística": ["OA15", "OA16", "OA17"]}, "I": {"Números": ["OA1", "OA2"], "Álgebra y funciones": ["OA3", "OA4", "OA5"], "Geometría": ["OA6", "OA7", "OA8", "OA9", "OA10", "OA11"], "Probabilidad y estadística": ["OA12", "OA13", "OA14", "OA15"]}, "II": {"Números": ["OA1", "OA2"], "Álgebra y funciones": ["OA3", "OA4", "OA5", "OA6"], "Geometría": ["OA7", "OA8", "OA9"], "Probabilidad y estadística": ["OA10", "OA11", "OA12"]}};
+
+const EJES_COLORS = {
+  "Números y operaciones":     {color:"#38bdf8", bg:"rgba(56,189,248,.15)",  idx:0},
+  "Patrones y álgebra":        {color:"#10b981", bg:"rgba(16,185,129,.15)",  idx:1},
+  "Geometría":                 {color:"#f59e0b", bg:"rgba(245,158,11,.15)",  idx:2},
+  "Medición":                  {color:"#a78bfa", bg:"rgba(167,139,250,.15)", idx:3},
+  "Datos y probabilidades":    {color:"#ef4444", bg:"rgba(239,68,68,.15)",   idx:4},
+  "Números":                   {color:"#38bdf8", bg:"rgba(56,189,248,.15)",  idx:0},
+  "Álgebra y funciones":       {color:"#10b981", bg:"rgba(16,185,129,.15)",  idx:1},
+  "Probabilidad y estadística":{color:"#ef4444", bg:"rgba(239,68,68,.15)",   idx:4}
+};
+
+let ejeActivo = null; // null = todos los ejes
+
+function renderEjes() {
+  const mat = filt(RAW.matematica);
+  const ORDEN = ['2','3','4','5','6','7','8','I','II'];
+
+  // ── Calcular promedios ──────────────────────────────────────────────
+  const acumGlobal = {}, acumNivel = {};
+  mat.forEach(c => {
+    const mapa = EJES_MAT[c.nivel]; if (!mapa) return;
+    if (!acumNivel[c.nivel]) acumNivel[c.nivel] = {};
+    Object.entries(mapa).forEach(([eje, oasE]) => {
+      const vals = oasE.map(oa => c.hab[oa]).filter(v => v != null);
+      if (!vals.length) return;
+      const v = vals.reduce((s,x)=>s+x,0)/vals.length;
+      if (!acumGlobal[eje]) acumGlobal[eje] = [];
+      acumGlobal[eje].push(v);
+      if (!acumNivel[c.nivel][eje]) acumNivel[c.nivel][eje] = [];
+      acumNivel[c.nivel][eje].push(v);
+    });
+  });
+  const promGlobal = {}, promNivel = {};
+  Object.entries(acumGlobal).forEach(([e,v]) =>
+    promGlobal[e] = +(v.reduce((s,x)=>s+x,0)/v.length).toFixed(1));
+  Object.entries(acumNivel).forEach(([n,obj]) => {
+    promNivel[n] = {};
+    Object.entries(obj).forEach(([e,v]) =>
+      promNivel[n][e] = +(v.reduce((s,x)=>s+x,0)/v.length).toFixed(1));
+  });
+
+  const allEjes = [...new Set(Object.values(EJES_MAT).flatMap(m=>Object.keys(m)))];
+  const ejFilt = ejeActivo ? [ejeActivo] : allEjes;
+
+  // ── FILTRO ─────────────────────────────────────────────────────────
+  const tabs = document.getElementById('ejes-tabs-btns');
+  tabs.innerHTML = '';
+  const mkB = (txt, active, color, fn) => {
+    const b = document.createElement('button');
+    b.className = 'eje-tab-btn';
+    if (active) Object.assign(b.style,{background:color,color:'#fff',borderColor:'transparent',fontWeight:'800'});
+    else Object.assign(b.style,{color:color,borderColor:color});
+    b.textContent = txt; b.onclick = fn;
+    tabs.appendChild(b);
+  };
+  mkB('Todos', ejeActivo===null,'var(--accent)',()=>{ejeActivo=null;renderEjes();});
+  allEjes.forEach(eje => {
+    const ec = EJES_COLORS[eje]||{color:'#38bdf8'};
+    const p = promGlobal[eje];
+    mkB(eje+(p?` · ${p}%`:''), ejeActivo===eje, ec.color, ()=>{ejeActivo=eje;renderEjes();});
+  });
+
+  // ── RANKING GLOBAL ─────────────────────────────────────────────────
+  const rg = document.getElementById('ejes-ranking-global');
+  rg.innerHTML = '';
+  allEjes.filter(e => ejFilt.includes(e) && promGlobal[e]!=null)
+    .sort((a,b) => promGlobal[b]-promGlobal[a])
+    .forEach((eje,i) => {
+      const p = promGlobal[eje];
+      const ec = EJES_COLORS[eje]||{color:'#38bdf8'};
+      const isA = ejeActivo===eje;
+      const row = document.createElement('div');
+      row.style.cssText=`display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;margin-bottom:5px;cursor:pointer;border:1px solid ${isA?ec.color:'transparent'};background:${isA?ec.color+'22':'var(--surface2)'};transition:all .2s`;
+      row.onclick=()=>{ejeActivo=ejeActivo===eje?null:eje;renderEjes();};
+      row.innerHTML=`<div style="font-size:17px;width:26px;text-align:center;flex-shrink:0">${['🥇','🥈','🥉','4°','5°'][i]||i+1+'°'}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:12px;font-weight:700;color:${ec.color};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${eje}</div>
+          <div style="height:5px;background:var(--surface);border-radius:3px;margin-top:4px;overflow:hidden">
+            <div style="height:100%;width:${p}%;background:${cProm(p)};border-radius:3px"></div></div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:800;color:${cProm(p)}">${p}%</span>
+          <span>${chip(p)}</span>
+        </div>`;
+      rg.appendChild(row);
+    });
+
+  // ── RADAR POR CICLO ────────────────────────────────────────────────
+  const ciclos=['1° Ciclo','2° Ciclo','Ens. Media'];
+  const SH={'Números y operaciones':'N° y Op.','Patrones y álgebra':'Patrones','Datos y probabilidades':'Datos','Álgebra y funciones':'Álgebra','Probabilidad y estadística':'Probabilidad'};
+  kill('ejes-radar');
+  charts['ejes-radar']=new Chart(document.getElementById('ch-ejes-radar'),{
+    type:'radar',
+    data:{labels:ejFilt.map(e=>SH[e]||e), datasets:ciclos.map((ci,i)=>{
+      const cs=mat.filter(c=>c.ciclo===ci);
+      return {label:ci, data:ejFilt.map(eje=>{
+        const vs=[];cs.forEach(c=>{const m=EJES_MAT[c.nivel];if(!m||!m[eje])return;
+          const v=m[eje].map(oa=>c.hab[oa]).filter(v=>v!=null);if(v.length)vs.push(v.reduce((s,x)=>s+x,0)/v.length);});
+        return vs.length?+(vs.reduce((s,v)=>s+v,0)/vs.length).toFixed(1):0;
+      }),borderColor:[C.c1,C.c2,C.hc][i],
+      backgroundColor:['rgba(16,185,129,.12)','rgba(56,189,248,.12)','rgba(167,139,250,.12)'][i],
+      borderWidth:2,pointRadius:4};
+    })},
+    options:{...CD,scales:{r:{ticks:{display:false},grid:{color:C.grid},pointLabels:{color:C.txt,font:{family:'Sora',size:11}},min:0,max:100}}}
+  });
+
+  // ── MEJOR/PEOR EJE POR NIVEL ───────────────────────────────────────
+  const ep = document.getElementById('ejes-por-nivel');
+  ep.innerHTML = '';
+  const hdr = document.createElement('div');
+  hdr.style.cssText='display:grid;grid-template-columns:90px 1fr 1fr;gap:10px;padding:5px 10px 8px;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:700;border-bottom:1px solid var(--border);margin-bottom:8px';
+  hdr.innerHTML='<div>Nivel</div><div><span style="background:rgba(16,185,129,.2);color:#10b981;padding:2px 8px;border-radius:10px">🟢 Mayor logro</span></div><div><span style="background:rgba(239,68,68,.2);color:#ef4444;padding:2px 8px;border-radius:10px">🔴 Menor logro</span></div>';
+  ep.appendChild(hdr);
+  ORDEN.filter(n=>promNivel[n]).forEach(n=>{
+    const entries=Object.entries(promNivel[n]).filter(([e])=>ejFilt.includes(e)&&promNivel[n][e]!=null).sort((a,b)=>b[1]-a[1]);
+    if(!entries.length)return;
+    const mejor=entries[0], peor=entries[entries.length-1];
+    const lN=n.match(/^\d$/)?n+'° Básico':n+'° EM';
+    const mkCell=(eje,p,fn)=>{
+      const ec=EJES_COLORS[eje]||{color:'#38bdf8'};
+      return `<div style="display:flex;align-items:center;gap:8px;background:${ec.color}18;border-radius:7px;padding:7px 10px;cursor:pointer" onclick="${fn}">
+        <div style="width:8px;height:8px;border-radius:50%;background:${ec.color};flex-shrink:0"></div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:11px;font-weight:700;color:${ec.color};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${eje}</div>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:2px">
+            <span style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:800;color:${cProm(p)}">${p}%</span>
+            ${chip(p)}
+          </div>
+        </div>
+      </div>`;
+    };
+    const row=document.createElement('div');
+    row.style.cssText='display:grid;grid-template-columns:90px 1fr 1fr;gap:10px;padding:4px 6px;margin-bottom:4px;align-items:center';
+    row.innerHTML=`<div style="font-size:12px;font-weight:700;color:var(--text)">${lN}</div>
+      ${mkCell(mejor[0],mejor[1],`ejeActivo='${mejor[0]}';renderEjes()`)}
+      ${mkCell(peor[0],peor[1],`ejeActivo='${peor[0]}';renderEjes()`)}`;
+    ep.appendChild(row);
+  });
+
+  // ── BARRAS POR EJE Y NIVEL ────────────────────────────────────────
+  document.getElementById('ejes-bar-title').textContent=
+    ejeActivo?`Promedio — ${ejeActivo} por nivel`:'Promedio por eje — todos los niveles';
+  const nCon=ORDEN.filter(n=>promNivel[n]);
+  kill('ejes-barras');
+  charts['ejes-barras']=new Chart(document.getElementById('ch-ejes-barras'),{
+    type:'bar',
+    data:{labels:nCon.map(n=>n.match(/^\d$/)?n+'°':n),
+      datasets:ejFilt.filter(e=>nCon.some(n=>promNivel[n]?.[e]!=null)).map(eje=>{
+        const vals=nCon.map(n=>promNivel[n]?.[eje]??null);
+        return {label:eje,data:vals,...statusColors(vals),borderWidth:2,borderRadius:4,spanGaps:true};
+      })},
+    options:{...CD,plugins:{...CD.plugins,tooltip:{...CD.plugins.tooltip,
+      callbacks:{label:ctx=>` ${ctx.dataset.label}: ${ctx.raw}%  →  Nota ${p2n(ctx.raw)} [${cat(ctx.raw)}]`}}},
+      layout:{padding:{right:8,left:2}}},
+    plugins:[lineaRef()]
+  });
+
+  // ── DETALLE POR NIVEL Y EJE ───────────────────────────────────────
+  document.getElementById('ejes-detalle-title').textContent=
+    ejeActivo?`Detalle — ${ejeActivo}`:'Detalle por nivel y eje';
+  const grid=document.getElementById('ejes-detalle-grid');
+  grid.innerHTML='';
+  const pN={};
+  mat.forEach(c=>{if(!EJES_MAT[c.nivel])return;if(!pN[c.nivel])pN[c.nivel]=[];pN[c.nivel].push(c);});
+  ORDEN.filter(n=>pN[n]).forEach(n=>{
+    const cursos=pN[n], mapa=EJES_MAT[n];
+    const eShow=ejeActivo?(mapa[ejeActivo]?{[ejeActivo]:mapa[ejeActivo]}:{}) : mapa;
+    if(!Object.keys(eShow).length)return;
+    const lN=n.match(/^\d$/)?n+'° Básico':n+'° EM';
+    const levelGroup=document.createElement('div');
+    levelGroup.className='eje-level-group';
+    levelGroup.innerHTML=`<div class="eje-level-title">${lN}</div><div class="eje-level-cards"></div>`;
+    const levelCards=levelGroup.querySelector('.eje-level-cards');
+    Object.entries(eShow).forEach(([eje,oasE])=>{
+      const ec=EJES_COLORS[eje]||{color:'#38bdf8'};
+      const cd=cursos.map(c=>{
+        const vs=oasE.map(oa=>c.hab[oa]).filter(v=>v!=null);
+        return {label:c.label,prom:vs.length?+(vs.reduce((s,v)=>s+v,0)/vs.length).toFixed(1):null};
+      }).filter(c=>c.prom!==null);
+      if(!cd.length)return;
+      const np=avg(cd.map(c=>c.prom));
+      const card=document.createElement('div');
+      card.className='eje-card'; card.style.borderTop=`3px solid ${ec.color}`;
+      const cH=cd.map(c=>{const cl=cProm(c.prom);return `<div style="display:flex;align-items:center;gap:7px;margin-bottom:4px"><div style="font-size:11px;font-weight:700;min-width:32px;color:var(--text)">${c.label}</div><div class="eje-bar-wrap" style="flex:1;margin:0"><div class="eje-bar-fill" style="width:${c.prom}%;background:${cl}"></div></div><div style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:${cl};min-width:36px;text-align:right">${c.prom}%</div></div>`;}).join('');
+      const oH=oasE.map(oa=>{const p=avg(cursos.map(c=>c.hab[oa]).filter(v=>v!=null));const cl=cProm(p);return `<span class="eje-oa-chip" style="background:${cBar(p)};color:${cl}" onclick="openOA('${oa}','${n}',${p},'${lN}')" title="${(BC_OA[n]?.[oa]||'').substring(0,80)}">${oa}: ${p}%</span>`;}).join('');
+      card.innerHTML=`<div class="eje-nivel-label"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${ec.color};flex-shrink:0"></span><span style="color:var(--text);font-size:12px">${eje}</span></div><div class="eje-prom-big" style="color:${cProm(np)}">${np}<span style="font-size:14px;font-weight:400;color:var(--muted)">%</span></div><div class="eje-nota">Nota ${p2n(np)} <span style="opacity:.6">[${cat(np)}]</span></div><div class="eje-bar-wrap"><div class="eje-bar-fill" style="width:${np}%;background:${cProm(np)}"></div></div><details style="margin-top:10px"><summary style="font-size:11px;color:var(--muted);cursor:pointer">Ver cursos y OA ▾</summary><div style="margin-top:8px">${cH}</div><div class="eje-oa-list" style="margin-top:8px">${oH}</div></details>`;
+      levelCards.appendChild(card);
+    });
+    grid.appendChild(levelGroup);
+  });
+}
+
+function renderPrioridades() {
+  const lec = filt(RAW.lectura);
+  const mat = filt(RAW.matematica);
+  const ORDEN = ['2','3','4','5','6','7','8','I','II'];
+
+  // Clasificar cursos por logro (promedio del curso)
+  // NL < 50%, PL 50-66.6%, L >= 66.7%
+  const clasificar = (cursos) => {
+    const nl=[], pl=[], l=[];
+    cursos.forEach(c => {
+      if (c.prom < 50) nl.push(c);
+      else if (c.prom < 66.7) pl.push(c);
+      else l.push(c);
+    });
+    return {nl, pl, l};
+  };
+
+  const clLec = clasificar(lec);
+  const clMat = clasificar(mat);
+
+  // KPIs globales
+  const estNL_lec = clLec.nl.reduce((s,c)=>s+c.n,0);
+  const estPL_lec = clLec.pl.reduce((s,c)=>s+c.n,0);
+  const estL_lec  = clLec.l.reduce((s,c)=>s+c.n,0);
+  const estNL_mat = clMat.nl.reduce((s,c)=>s+c.n,0);
+  const estPL_mat = clMat.pl.reduce((s,c)=>s+c.n,0);
+  const estL_mat  = clMat.l.reduce((s,c)=>s+c.n,0);
+  const totalLec  = lec.reduce((s,c)=>s+c.n,0);
+  const totalMat  = mat.reduce((s,c)=>s+c.n,0);
+
+  // KPIs en 3 columnas
+  const kpiEl = document.getElementById('prio-kpis');
+  kpiEl.innerHTML = `
+    <div class="section-title" style="margin-bottom:14px">Resumen global de estudiantes</div>
+    <div class="prio-kpi-grid">
+      <div class="prio-kpi prio-nl">
+        <div class="prio-kpi-val" style="color:#ef4444">${(estNL_lec+estNL_mat).toLocaleString('es-CL')}</div>
+        <div class="prio-kpi-label" style="color:#ef4444">🔴 Atención Prioritaria (NL)</div>
+        <div class="prio-kpi-sub" style="color:#ef4444">Lectura: ${estNL_lec} · Mat: ${estNL_mat}</div>
+        <div style="margin-top:6px;font-size:11px;color:var(--muted)">Promedio &lt; 50% · Nota &lt; 4.0</div>
+      </div>
+      <div class="prio-kpi prio-pl">
+        <div class="prio-kpi-val" style="color:#f59e0b">${(estPL_lec+estPL_mat).toLocaleString('es-CL')}</div>
+        <div class="prio-kpi-label" style="color:#f59e0b">🟡 En Desarrollo (PL)</div>
+        <div class="prio-kpi-sub" style="color:#f59e0b">Lectura: ${estPL_lec} · Mat: ${estPL_mat}</div>
+        <div style="margin-top:6px;font-size:11px;color:var(--muted)">Promedio 50–66% · Nota 4.0–4.9</div>
+      </div>
+      <div class="prio-kpi prio-l">
+        <div class="prio-kpi-val" style="color:#10b981">${(estL_lec+estL_mat).toLocaleString('es-CL')}</div>
+        <div class="prio-kpi-label" style="color:#10b981">🟢 Fortaleza (L)</div>
+        <div class="prio-kpi-sub" style="color:#10b981">Lectura: ${estL_lec} · Mat: ${estL_mat}</div>
+        <div style="margin-top:6px;font-size:11px;color:var(--muted)">Promedio ≥ 67% · Nota ≥ 5.0</div>
+      </div>
+    </div>`;
+
+  // Gráficos apilados de estudiantes por nivel
+  const nivelesConDatos = ORDEN.filter(n =>
+    lec.some(c=>c.nivel===n) || mat.some(c=>c.nivel===n));
+  const labelsN = nivelesConDatos.map(n => n.match(/^\d$/) ? n+'°' : n);
+
+  const buildDataPorNivel = (cursos) => {
+    const nl=[], pl=[], l=[];
+    nivelesConDatos.forEach(n => {
+      const cs = cursos.filter(c=>c.nivel===n);
+      nl.push(cs.filter(c=>c.prom<50).reduce((s,c)=>s+c.n,0));
+      pl.push(cs.filter(c=>c.prom>=50&&c.prom<66.7).reduce((s,c)=>s+c.n,0));
+      l.push(cs.filter(c=>c.prom>=66.7).reduce((s,c)=>s+c.n,0));
+    });
+    return {nl,pl,l};
+  };
+
+  const dLec = buildDataPorNivel(lec);
+  const dMat = buildDataPorNivel(mat);
+  const stackTotalsL = nivelesConDatos.map((_,i)=>(dLec.nl[i]||0)+(dLec.pl[i]||0)+(dLec.l[i]||0));
+  const stackTotalsM = nivelesConDatos.map((_,i)=>(dMat.nl[i]||0)+(dMat.pl[i]||0)+(dMat.l[i]||0));
+  const maxStack = Math.max(0,...stackTotalsL,...stackTotalsM);
+  const yMax = maxStack<=10 ? 10 : Math.ceil(maxStack/10)*10;
+
+  const stackedOpts = {
+    ...CD,
+    scales:{
+      x:{...CD.scales.x,stacked:true},
+      y:{
+        ...CD.scales.y,
+        stacked:true,
+        min:0,
+        max:yMax,
+        ticks:{...CD.scales.y.ticks,callback: v => v.toLocaleString('es-CL')}
+      }
+    },
+    plugins:{...CD.plugins,
+      tooltip:{...CD.plugins.tooltip,callbacks:{
+        label: ctx => ` ${ctx.dataset.label}: ${ctx.raw.toLocaleString('es-CL')} est.`
+      }}
+    }
+  };
+
+  kill('prio-lec');
+  charts['prio-lec'] = new Chart(document.getElementById('ch-prio-lec'),{
+    type:'bar',
+    data:{labels:labelsN, datasets:[
+      {label:'🔴 NL (< 50%)',   data:dLec.nl, backgroundColor:'rgba(239,68,68,.75)',  borderRadius:0, valueLabelMode:'number'},
+      {label:'🟡 PL (50-66%)', data:dLec.pl, backgroundColor:'rgba(245,158,11,.75)', borderRadius:0, valueLabelMode:'number'},
+      {label:'🟢 L (≥ 67%)',   data:dLec.l,  backgroundColor:'rgba(16,185,129,.75)', borderRadius:4, valueLabelMode:'number'}
+    ]},
+    options: stackedOpts
+  });
+
+  kill('prio-mat');
+  charts['prio-mat'] = new Chart(document.getElementById('ch-prio-mat'),{
+    type:'bar',
+    data:{labels:labelsN, datasets:[
+      {label:'🔴 NL (< 50%)',   data:dMat.nl, backgroundColor:'rgba(239,68,68,.75)',  borderRadius:0, valueLabelMode:'number'},
+      {label:'🟡 PL (50-66%)', data:dMat.pl, backgroundColor:'rgba(245,158,11,.75)', borderRadius:0, valueLabelMode:'number'},
+      {label:'🟢 L (≥ 67%)',   data:dMat.l,  backgroundColor:'rgba(16,185,129,.75)', borderRadius:4, valueLabelMode:'number'}
+    ]},
+    options: stackedOpts
+  });
+
+  // Tabla detallada por nivel
+  const tabla = document.getElementById('prio-tabla');
+  tabla.innerHTML = '';
+
+  const hCard = document.createElement('div');
+  hCard.className = 'prio-card';
+
+  // Encabezado
+  const COLS = '140px 1fr 1fr 1fr 50px 1fr 1fr 1fr 50px';
+  const thead = document.createElement('div');
+  thead.style.cssText=`display:grid;grid-template-columns:${COLS};gap:6px;padding:8px 14px;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:700;border-bottom:1px solid var(--border);background:var(--surface2)`;
+  thead.innerHTML=`<div>Nivel</div>
+    <div style="color:#ef4444">🔴 NL Lec.</div><div style="color:#f59e0b">🟡 PL Lec.</div><div style="color:#10b981">🟢 L Lec.</div><div></div>
+    <div style="color:#ef4444">🔴 NL Mat.</div><div style="color:#f59e0b">🟡 PL Mat.</div><div style="color:#10b981">🟢 L Mat.</div><div></div>`;
+  hCard.appendChild(thead);
+
+  ORDEN.filter(n => lec.some(c=>c.nivel===n) || mat.some(c=>c.nivel===n)).forEach(n => {
+    const csLec = lec.filter(c=>c.nivel===n);
+    const csMat = mat.filter(c=>c.nivel===n);
+    if (!csLec.length && !csMat.length) return;
+
+    const totLec = csLec.reduce((s,c)=>s+c.n,0);
+    const totMat = csMat.reduce((s,c)=>s+c.n,0);
+    const nlL = csLec.filter(c=>c.prom<50).reduce((s,c)=>s+c.n,0);
+    const plL = csLec.filter(c=>c.prom>=50&&c.prom<66.7).reduce((s,c)=>s+c.n,0);
+    const lL  = csLec.filter(c=>c.prom>=66.7).reduce((s,c)=>s+c.n,0);
+    const nlM = csMat.filter(c=>c.prom<50).reduce((s,c)=>s+c.n,0);
+    const plM = csMat.filter(c=>c.prom>=50&&c.prom<66.7).reduce((s,c)=>s+c.n,0);
+    const lM  = csMat.filter(c=>c.prom>=66.7).reduce((s,c)=>s+c.n,0);
+
+    const lN = n.match(/^\d$/) ? n+'° Básico' : n+'° EM';
+
+    // Calcular peor eje de este nivel para mostrarlo
+    let peorEjeMat = '';
+    if (EJES_MAT[n]) {
+      const mat_n = csMat;
+      let minP = 999, minEje = '';
+      Object.entries(EJES_MAT[n]).forEach(([eje, oasE]) => {
+        const vs = mat_n.flatMap(c => oasE.map(oa=>c.hab[oa]).filter(v=>v!=null));
+        if (vs.length) {
+          const p = vs.reduce((s,x)=>s+x,0)/vs.length;
+          if (p < minP) { minP = p; minEje = eje; }
+        }
+      });
+      if (minEje) peorEjeMat = ` · ⚠️ ${minEje}: ${minP.toFixed(0)}%`;
+    }
+
+    const pctNlL = totLec ? Math.round(nlL/totLec*100) : 0;
+    const pctNlM = totMat ? Math.round(nlM/totMat*100) : 0;
+
+    const row = document.createElement('div');
+    const highlightRow = (pctNlL > 40 || pctNlM > 40) ? 'rgba(239,68,68,.06)' : 'transparent';
+    row.style.cssText=`display:grid;grid-template-columns:${COLS};gap:6px;padding:9px 14px;border-bottom:1px solid var(--border);align-items:center;background:${highlightRow}`;
+
+    const mkEst = (n, tot, color) => tot > 0 ? `<div style="text-align:center">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:800;color:${color}">${n}</div>
+      <div style="font-size:10px;color:var(--muted)">${tot?Math.round(n/tot*100):'0'}%</div>
+    </div>` : `<div style="text-align:center;color:var(--muted);font-size:12px">—</div>`;
+
+    row.innerHTML = `
+      <div>
+        <div style="font-size:12px;font-weight:700;color:var(--text)">${lN}</div>
+        <div style="font-size:10px;color:var(--muted)">Lec:${totLec} · Mat:${totMat}${peorEjeMat}</div>
+      </div>
+      ${mkEst(nlL,totLec,'#ef4444')}${mkEst(plL,totLec,'#f59e0b')}${mkEst(lL,totLec,'#10b981')}
+      <div style="width:4px;height:32px;background:var(--border);border-radius:2px;margin:0 auto"></div>
+      ${mkEst(nlM,totMat,'#ef4444')}${mkEst(plM,totMat,'#f59e0b')}${mkEst(lM,totMat,'#10b981')}
+      <div style="width:4px;height:32px;background:var(--border);border-radius:2px;margin:0 auto"></div>`;
+    hCard.appendChild(row);
+  });
+
+  // Totales
+  const totalRow = document.createElement('div');
+  totalRow.style.cssText=`display:grid;grid-template-columns:${COLS};gap:6px;padding:9px 14px;background:var(--surface2);font-weight:700;align-items:center`;
+  const tnlL=lec.filter(c=>c.prom<50).reduce((s,c)=>s+c.n,0);
+  const tplL=lec.filter(c=>c.prom>=50&&c.prom<66.7).reduce((s,c)=>s+c.n,0);
+  const tlL=lec.filter(c=>c.prom>=66.7).reduce((s,c)=>s+c.n,0);
+  const tnlM=mat.filter(c=>c.prom<50).reduce((s,c)=>s+c.n,0);
+  const tplM=mat.filter(c=>c.prom>=50&&c.prom<66.7).reduce((s,c)=>s+c.n,0);
+  const tlM=mat.filter(c=>c.prom>=66.7).reduce((s,c)=>s+c.n,0);
+  const tL=lec.reduce((s,c)=>s+c.n,0), tM=mat.reduce((s,c)=>s+c.n,0);
+  const mkT=(n,tot,color)=>`<div style="text-align:center;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:800;color:${color}">${n}<div style="font-size:10px;opacity:.7">${tot?Math.round(n/tot*100):0}%</div></div>`;
+  totalRow.innerHTML=`<div style="font-size:12px;color:var(--muted)">TOTAL</div>
+    ${mkT(tnlL,tL,'#ef4444')}${mkT(tplL,tL,'#f59e0b')}${mkT(tlL,tL,'#10b981')}
+    <div></div>
+    ${mkT(tnlM,tM,'#ef4444')}${mkT(tplM,tM,'#f59e0b')}${mkT(tlM,tM,'#10b981')}
+    <div></div>`;
+  hCard.appendChild(totalRow);
+  tabla.appendChild(hCard);
+}
+
+function renderSimce(){
+  const simceNiveles=new Set(['4','6','II']);
+  const act=(v)=>simceFiltro===v?'simce-filter-btn active':'simce-filter-btn';
+  const sfT=document.getElementById('sf-todos'); if(sfT) sfT.className=act('todos');
+  const sf4=document.getElementById('sf-4'); if(sf4) sf4.className=act('4');
+  const sf6=document.getElementById('sf-6'); if(sf6) sf6.className=act('6');
+  const sf2=document.getElementById('sf-II'); if(sf2) sf2.className=act('II');
+  const targetNivel=simceFiltro==='todos'?null:simceFiltro;
+  const lec=RAW.lectura.filter(c=>simceNiveles.has(c.nivel) && (!targetNivel || c.nivel===targetNivel));
+  const mat=RAW.matematica.filter(c=>simceNiveles.has(c.nivel) && (!targetNivel || c.nivel===targetNivel));
+  const kpiEl=document.getElementById('simce-kpis');
+  const tablaEl=document.getElementById('simce-tabla');
+  const ejesLecturaEl=document.getElementById('simce-ejes-lectura');
+  const oaMatEl=document.getElementById('simce-oa-mat');
+  const sortBtn=document.getElementById('btn-sort-simce-lectura');
+  const sortBtnMat=document.getElementById('btn-sort-simce-mat');
+  const nivelesOrden=['4','6','II'];
+  const labelNivel=n=>n==='II'?'II Medio':`${n}° Básico`;
+  if(sortBtn) sortBtn.textContent=simceSortLabel();
+  if(sortBtnMat) sortBtnMat.textContent=simceMatSortLabel();
+  if(!lec.length && !mat.length){
+    kpiEl.innerHTML='<div class="simce-kpi"><div class="val">—</div><div class="lbl">Sin datos SIMCE para el filtro actual</div></div>';
+    tablaEl.innerHTML='';
+    if(ejesLecturaEl) ejesLecturaEl.innerHTML='';
+    if(oaMatEl) oaMatEl.innerHTML='';
+    kill('simce-lec'); kill('simce-mat');
+    return;
+  }
+
+  const pL=avg(lec.map(c=>c.prom));
+  const pM=avg(mat.map(c=>c.prom));
+  const totalEst=[...lec,...mat].reduce((s,c)=>s+c.n,0);
+  const comunes=[...new Set(lec.map(c=>c.label).filter(l=>mat.some(m=>m.label===l)))];
+  const brechaProm=avg(comunes.map(label=>{
+    const l=lec.find(c=>c.label===label)?.prom||0;
+    const m=mat.find(c=>c.label===label)?.prom||0;
+    return l-m;
+  }));
+
+  kpiEl.innerHTML=`
+    <div class="simce-kpi" style="border-top:3px solid var(--lectura)"><div class="val" style="color:${cProm(pL)}">${pL}%</div><div class="lbl">Promedio Lectura</div></div>
+    <div class="simce-kpi" style="border-top:3px solid var(--mat)"><div class="val" style="color:${cProm(pM)}">${pM}%</div><div class="lbl">Promedio Matemática</div></div>
+    <div class="simce-kpi" style="border-top:3px solid var(--accent)"><div class="val" style="color:${brechaProm>=0?C.lec:C.mat}">${brechaProm>0?'+':''}${brechaProm}%</div><div class="lbl">Brecha promedio L - M</div></div>
+    <div class="simce-kpi" style="border-top:3px solid var(--alto)"><div class="val">${totalEst.toLocaleString('es-CL')}</div><div class="lbl">Total estudiantes evaluados</div></div>
+  `;
+
+  const ordenNivel={'4':1,'6':2,'II':3};
+  const cursos=[...new Set([...lec.map(c=>c.label),...mat.map(c=>c.label)])].sort((a,b)=>{
+    const al=lec.find(c=>c.label===a)||mat.find(c=>c.label===a);
+    const bl=lec.find(c=>c.label===b)||mat.find(c=>c.label===b);
+    const da=(ordenNivel[al?.nivel]||99), db=(ordenNivel[bl?.nivel]||99);
+    return da-db || a.localeCompare(b,'es');
+  });
+
+  const lecMap=Object.fromEntries(lec.map(c=>[c.label,c]));
+  const matMap=Object.fromEntries(mat.map(c=>[c.label,c]));
+  const valsL=cursos.map(c=>lecMap[c]?.prom??null);
+  const valsM=cursos.map(c=>matMap[c]?.prom??null);
+
+  kill('simce-lec');
+  charts['simce-lec']=new Chart(document.getElementById('ch-simce-lec'),{
+    type:'bar',
+    data:{labels:cursos,datasets:[{label:'Lectura %',data:valsL,...statusColors(valsL),borderWidth:2,borderRadius:4}]},
+    options:{...CD,plugins:{...CD.plugins,legend:{display:false},tooltip:ttNota()},layout:{padding:{right:8,left:2}}},
+    plugins:[lineaRef()]
+  });
+  kill('simce-mat');
+  charts['simce-mat']=new Chart(document.getElementById('ch-simce-mat'),{
+    type:'bar',
+    data:{labels:cursos,datasets:[{label:'Matemática %',data:valsM,...statusColors(valsM),borderWidth:2,borderRadius:4}]},
+    options:{...CD,plugins:{...CD.plugins,legend:{display:false},tooltip:ttNota()},layout:{padding:{right:8,left:2}}},
+    plugins:[lineaRef()]
+  });
+
+  if(ejesLecturaEl){
+    const ejesLectura=['Localizar','Interpretar y relacionar','Reflexionar'];
+    const ord=simceLecturaSort==='asc'?1:-1;
+    const nivelesCards=nivelesOrden.map(n=>{
+      const cursos=lec.filter(c=>c.nivel===n);
+      if(!cursos.length) return null;
+      return {nivel:n,cursos,promNivel:avg(cursos.map(c=>c.prom))};
+    }).filter(Boolean).sort((a,b)=>{
+      if(a.promNivel===b.promNivel) return a.nivel.localeCompare(b.nivel,'es');
+      return ord*(a.promNivel-b.promNivel);
+    });
+    ejesLecturaEl.className=`simce-level-grid simce-level-stack${nivelesCards.length===1?' single':''}`;
+
+    const cards=nivelesCards.map(item=>{
+      const rowsData=ejesLectura.map(eje=>{
+        const vals=item.cursos.map(c=>c.hab?.[eje]).filter(v=>v!=null);
+        return {eje,prom:vals.length?avg(vals):0};
+      }).sort((a,b)=>{
+        if(a.prom===b.prom) return a.eje.localeCompare(b.eje,'es');
+        return ord*(a.prom-b.prom);
+      });
+      const rows=rowsData.map(r=>{
+        const color=cProm(r.prom);
+        const corto=r.eje==='Interpretar y relacionar'?'Interpretar':r.eje;
+        return `<div class="simce-mini-row">
+          <div class="name" title="${r.eje}">${corto}</div>
+          <div class="simce-mini-bar"><div class="simce-mini-fill" style="width:${r.prom}%;background:${color}"></div></div>
+          <div class="val" style="color:${color}">${r.prom}%</div>
+        </div>`;
+      }).join('');
+      return `<div class="simce-level-card">
+        <div class="simce-level-title">${labelNivel(item.nivel)} <span style="font-size:10px;color:var(--muted);font-weight:600">· Prom. ${item.promNivel}%</span></div>
+        <div class="simce-mini-rows">${rows}</div>
+      </div>`;
+    }).filter(Boolean).join('');
+    ejesLecturaEl.innerHTML=cards || '<div style="font-size:12px;color:var(--muted)">Sin datos de Lectura para este filtro.</div>';
+  }
+
+  if(oaMatEl){
+    const ordMat=simceMatSort==='asc'?1:-1;
+    const nivelesCards=nivelesOrden.map(n=>{
+      const cursos=mat.filter(c=>c.nivel===n);
+      if(!cursos.length) return null;
+      return {nivel:n,cursos,promNivel:avg(cursos.map(c=>c.prom))};
+    }).filter(Boolean).sort((a,b)=>{
+      if(a.promNivel===b.promNivel) return a.nivel.localeCompare(b.nivel,'es');
+      return ordMat*(a.promNivel-b.promNivel);
+    });
+
+    const cards=nivelesCards.map(item=>{
+      const oas=[...new Set(item.cursos.flatMap(c=>Object.keys(c.hab||{})))];
+      const rowsData=oas.map(oa=>{
+        const vals=item.cursos.map(c=>c.hab?.[oa]).filter(v=>v!=null);
+        return {oa,prom:vals.length?avg(vals):0};
+      }).sort((a,b)=>{
+        if(a.prom===b.prom){
+          const na=parseInt(a.oa.replace('OA',''),10), nb=parseInt(b.oa.replace('OA',''),10);
+          return na-nb;
+        }
+        return ordMat*(a.prom-b.prom);
+      });
+
+      const rows=rowsData.map(r=>{
+        const color=cProm(r.prom);
+        const tip=(BC_OA[item.nivel]?.[r.oa]||r.oa).replaceAll('"','&quot;');
+        return `<div class="simce-mini-row">
+          <div class="name" title="${tip}">${r.oa}</div>
+          <div class="simce-mini-bar"><div class="simce-mini-fill" style="width:${r.prom}%;background:${color}"></div></div>
+          <div class="val" style="color:${color}">${r.prom}%</div>
+        </div>`;
+      }).join('');
+      return `<div class="simce-level-card">
+        <div class="simce-level-title">${labelNivel(item.nivel)} <span style="font-size:10px;color:var(--muted);font-weight:600">· Prom. ${item.promNivel}% · ${rowsData.length} OA</span></div>
+        <div class="simce-mini-rows">${rows}</div>
+      </div>`;
+    }).filter(Boolean).join('');
+    oaMatEl.innerHTML=cards || '<div style="font-size:12px;color:var(--muted)">Sin datos de Matemática para este filtro.</div>';
+  }
+
+  let html=`<table class="ranking-table"><thead><tr><th>Nivel</th><th>Curso</th><th>Est. L</th><th>L %</th><th>Prof. Leng.</th><th>Est. M</th><th>M %</th><th>Prof. Mat.</th><th>Brecha</th></tr></thead><tbody>`;
+  cursos.forEach(label=>{
+    const l=lecMap[label], m=matMap[label];
+    const nivel=(l||m)?.nivel||'—';
+    const nL=l?.n??'—', nM=m?.n??'—';
+    const pvl=l?.prom??null, pvm=m?.prom??null;
+    const brecha=(pvl!=null&&pvm!=null)?+(pvl-pvm).toFixed(1):null;
+    html+=`<tr>
+      <td>${nivel}</td>
+      <td class="rank-curso">${label}</td>
+      <td>${nL}</td>
+      <td style="color:${pvl!=null?cProm(pvl):'var(--muted)'}">${pvl!=null?`${pvl}%`:'—'}</td>
+      <td>${teacherFor(label,'lenguaje')}</td>
+      <td>${nM}</td>
+      <td style="color:${pvm!=null?cProm(pvm):'var(--muted)'}">${pvm!=null?`${pvm}%`:'—'}</td>
+      <td>${teacherFor(label,'matematica')}</td>
+      <td style="color:${brecha==null?'var(--muted)':brecha>=0?C.lec:C.mat}">${brecha==null?'—':`${brecha>0?'+':''}${brecha}%`}</td>
+    </tr>`;
+  });
+  html+='</tbody></table>';
+  tablaEl.innerHTML=html;
+}
+
+
+function goToCourse(label){
+  const lec=filt(RAW.lectura), mat=filt(RAW.matematica);
+  const hasL=lec.some(c=>c.label===label), hasM=mat.some(c=>c.label===label);
+  if(!hasL && !hasM) return false;
+  if(hasL) selLec=label;
+  if(hasM) selMat=label;
+  showPage('detalle');
+  setToolsMsg(`Curso ${label} cargado`, 'var(--accent)');
+  return true;
+}
+
+function handleGoCourse(){
+  const input=document.getElementById('course-search');
+  if(!input) return;
+  const raw=input.value.trim();
+  const q=normCourse(raw);
+  if(!q){ setToolsMsg('Escribe un curso', '#f59e0b'); return; }
+  const labels=[...new Set([...filt(RAW.lectura).map(c=>c.label), ...filt(RAW.matematica).map(c=>c.label)])];
+  const exact=labels.find(l=>normCourse(l)===q);
+  const partial=labels.find(l=>normCourse(l).includes(q));
+  if(goToCourse(exact||partial||'')) return;
+  setToolsMsg(`No existe "${raw}" en este filtro`, '#ef4444');
+}
+
+function exportCSV(){
+  const rows=[['area','ciclo','nivel','curso','estudiantes','promedio_pct','nota','logro']];
+  const pushRows=(area,cursos)=>cursos.forEach(c=>rows.push([
+    area,c.ciclo,c.nivel,c.label,c.n,c.prom,p2n(c.prom),cat(c.prom)
+  ]));
+  pushRows('Lectura',filt(RAW.lectura));
+  pushRows('Matematica',filt(RAW.matematica));
+  const esc=v=>`"${String(v).replaceAll('"','""')}"`;
+  const csv='\uFEFF'+rows.map(r=>r.map(esc).join(';')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  const token=(filtro==='todos'?'todos':filtro.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'_'));
+  const stamp=new Date().toISOString().slice(0,10);
+  a.href=url;
+  a.download=`dashboard_diagnostico_${token}_${stamp}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  setToolsMsg('CSV exportado', '#10b981');
+}
+
+async function snapshotChartAtDisplaySize(ch){
+  const dpr=Math.max(1,window.devicePixelRatio||1);
+  const MIN_EXPORT_W=3200; // Salida XL para Canva/Slides (evita percepción de tamaño chico)
+  const MAX_EXPORT_SCALE=8;
+  const calcScale=(w)=>Math.min(MAX_EXPORT_SCALE,Math.max(dpr,MIN_EXPORT_W/Math.max(1,w)));
+
+  const cv=ch?.canvas;
+  if(!cv) return null;
+  const rect=cv.getBoundingClientRect();
+  const displayW=Math.max(1,Math.round(rect.width || cv.clientWidth || cv.width));
+  const displayH=Math.max(1,Math.round(rect.height || cv.clientHeight || cv.height));
+  const qualityScale=calcScale(displayW);
+  const scale=qualityScale;
+  const w=Math.max(1,Math.round(displayW*scale));
+  const h=Math.max(1,Math.round(displayH*scale));
+  const tmp=document.createElement('canvas');
+  tmp.width=w;
+  tmp.height=h;
+  const tctx=tmp.getContext('2d');
+  if(!tctx) return null;
+  tctx.imageSmoothingEnabled=true;
+  tctx.imageSmoothingQuality='high';
+  tctx.drawImage(cv,0,0,w,h);
+  const url=tmp.toDataURL('image/png');
+  if(!url || !url.startsWith('data:image/png')) return null;
+  return {url,width:w,height:h,displayWidth:displayW,displayHeight:displayH};
+}
+
+function stabilizeChartForExport(ch){
+  if(!ch) return;
+  try{ ch.stop(); }catch(_){}
+  try{
+    if(ch.options){
+      ch.options.animation=false;
+      ch.options.transitions={active:{animation:{duration:0}},resize:{animation:{duration:0}},show:{animation:{duration:0}},hide:{animation:{duration:0}}};
+    }
+    ch.update('none');
+  }catch(_){}
+}
+
+async function exportPNGs(){
+  const prevPage=currentPage;
+  const pages=['resumen','ranking','brecha','habilidades','ejes','prioridades','simce','detalle'];
+  const pause=()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+  const sleep=(ms)=>new Promise(r=>setTimeout(r,ms));
+  const slug=v=>String(v||'grafico')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^a-zA-Z0-9]+/g,'_')
+    .replace(/^_+|_+$/g,'')
+    .toLowerCase();
+
+  try{
+    setToolsMsg('Preparando gráficos para descarga...', 'var(--accent)');
+    const captures=[];
+
+    for(const p of pages){
+      showPage(p);
+      await pause();
+      resizeAllCharts();
+      await sleep(120);
+      for(const [id,ch] of Object.entries(charts)){
+        if(!ch || !ch.canvas || !ch.canvas.width || !ch.canvas.height) continue;
+        const pageEl=ch.canvas.closest('.page');
+        if(!pageEl || !pageEl.classList.contains('active')) continue;
+        stabilizeChartForExport(ch);
+        await pause();
+        const card=ch.canvas.closest('.card');
+        const title=(card?.querySelector('.card-title')?.textContent || id).trim();
+        try{
+          const snap=await snapshotChartAtDisplaySize(ch);
+          if(snap) captures.push({
+            page:p,id,title,url:snap.url,
+            width:snap.width,height:snap.height,
+            displayWidth:snap.displayWidth,displayHeight:snap.displayHeight
+          });
+        }catch(_){
+          // Ignorar gráficos que fallen individualmente para no abortar toda la exportación
+        }
+      }
+    }
+
+    showPage(prevPage);
+    await pause();
+
+    if(!captures.length){
+      setToolsMsg('No se encontraron gráficos para exportar', '#f59e0b');
+      return;
+    }
+
+    const stamp=new Date().toISOString().slice(0,10);
+    if(typeof JSZip!=='undefined'){
+      const zip=new JSZip();
+      let i=0;
+      for(const cap of captures){
+        i+=1;
+        const file=`${String(i).padStart(2,'0')}_${slug(cap.page)}_${slug(cap.title)}.png`;
+        const b64=(cap.url.split(',')[1]||'');
+        zip.file(file,b64,{base64:true});
+      }
+      const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:6}});
+      const zurl=URL.createObjectURL(blob);
+      const a=document.createElement('a');
+      a.href=zurl;
+      a.download=`graficos_dashboard_${stamp}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(zurl);
+      setToolsMsg(`${captures.length} gráficos PNG simples en ZIP`, '#10b981');
+      return;
+    }
+
+    // Fallback si JSZip no está disponible
+    let i=0;
+    for(const cap of captures){
+      i+=1;
+      const file=`${String(i).padStart(2,'0')}_${slug(cap.page)}_${slug(cap.title)}.png`;
+      const a=document.createElement('a');
+      a.href=cap.url;
+      a.download=file;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      await new Promise(r=>setTimeout(r,120));
+    }
+
+    setToolsMsg(`${captures.length} gráficos PNG descargados (activa descargas múltiples si faltan archivos)`, '#f59e0b');
+  }catch(err){
+    console.error(err);
+    try{ showPage(prevPage); }catch(_){}
+    setToolsMsg(`No se pudo exportar PNG: ${err?.message||'error'}`, '#ef4444');
+  }
+}
+
+async function exportSVGs(){
+  const prevPage=currentPage;
+  const pages=['resumen','ranking','brecha','habilidades','ejes','prioridades','simce','detalle'];
+  const pause=()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+  const sleep=(ms)=>new Promise(r=>setTimeout(r,ms));
+  const slug=v=>String(v||'grafico')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^a-zA-Z0-9]+/g,'_')
+    .replace(/^_+|_+$/g,'')
+    .toLowerCase();
+
+  try{
+    setToolsMsg('Preparando gráficos SVG...', 'var(--accent)');
+    const captures=[];
+
+    for(const p of pages){
+      showPage(p);
+      await pause();
+      resizeAllCharts();
+      await sleep(120);
+      for(const [id,ch] of Object.entries(charts)){
+        if(!ch || !ch.canvas || !ch.canvas.width || !ch.canvas.height) continue;
+        const pageEl=ch.canvas.closest('.page');
+        if(!pageEl || !pageEl.classList.contains('active')) continue;
+        stabilizeChartForExport(ch);
+        await pause();
+        const card=ch.canvas.closest('.card');
+        const title=(card?.querySelector('.card-title')?.textContent || id).trim();
+        try{
+          const snap=await snapshotChartAtDisplaySize(ch);
+          if(snap) captures.push({
+            page:p,id,title,url:snap.url,
+            width:snap.width,height:snap.height,
+            displayWidth:snap.displayWidth,displayHeight:snap.displayHeight
+          });
+        }catch(_){
+          // Ignorar gráfico individual
+        }
+      }
+    }
+
+    showPage(prevPage);
+    await pause();
+
+    if(!captures.length){
+      setToolsMsg('No se encontraron gráficos para exportar', '#f59e0b');
+      return;
+    }
+
+    const stamp=new Date().toISOString().slice(0,10);
+    if(typeof JSZip==='undefined'){
+      setToolsMsg('No se pudo exportar SVG: falta JSZip', '#ef4444');
+      return;
+    }
+
+    const zip=new JSZip();
+    let i=0;
+    for(const cap of captures){
+      i+=1;
+      const file=`${String(i).padStart(2,'0')}_${slug(cap.page)}_${slug(cap.title)}.svg`;
+      const b64=(cap.url.split(',')[1]||'');
+      // Mantener 1:1 la resolución capturada para evitar reescalado interno del PNG embebido
+      const w=Math.max(1,Math.round(cap.width||cap.displayWidth||1200));
+      const h=Math.max(1,Math.round(cap.height||cap.displayHeight||600));
+      const svg=`<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">\n  <image href="data:image/png;base64,${b64}" width="${w}" height="${h}" />\n</svg>\n`;
+      zip.file(file,svg);
+    }
+
+    const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:6}});
+    const zurl=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=zurl;
+    a.download=`graficos_dashboard_svg_${stamp}.zip`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(zurl);
+    setToolsMsg(`${captures.length} gráficos SVG simples en ZIP`, '#10b981');
+  }catch(err){
+    console.error(err);
+    try{ showPage(prevPage); }catch(_){}
+    setToolsMsg(`No se pudo exportar SVG: ${err?.message||'error'}`, '#ef4444');
+  }
+}
+
+function renderInsights(lec, mat){
+  const cont=document.getElementById('insights-grid');
+  if(!cont) return;
+  const lm=Object.fromEntries(lec.map(c=>[c.label,c]));
+  const mm=Object.fromEntries(mat.map(c=>[c.label,c]));
+  const comunes=Object.keys(lm).filter(k=>mm[k]);
+  if(!comunes.length){
+    cont.innerHTML='<div class="insight-box"><div class="insight-title">Sin cursos comparables</div><div style="font-size:12px;color:var(--muted)">Ajusta el filtro para visualizar insights cruzados de Lectura y Matemática.</div></div>';
+    return;
+  }
+
+  const combinado=comunes.map(label=>{
+    const lp=lm[label].prom, mp=mm[label].prom;
+    return {label, prom:+((lp+mp)/2).toFixed(1), brecha:+(lp-mp).toFixed(1)};
+  });
+
+  const top=[...combinado].sort((a,b)=>b.prom-a.prom).slice(0,3);
+  const riesgo=[...combinado].sort((a,b)=>a.prom-b.prom).slice(0,3);
+  const brechas=[...combinado].sort((a,b)=>Math.abs(b.brecha)-Math.abs(a.brecha)).slice(0,3);
+
+  const mk=(title,color,items,kind)=>`<div class="insight-box"><div class="insight-title" style="color:${color}">${title}</div><div class="insight-list">${items.map(it=>{
+    if(kind==='brecha'){
+      const sign=it.brecha>0?'+':'';
+      const bcolor=it.brecha>=0?C.lec:C.mat;
+      return `<div class="insight-item"><strong>${it.label}</strong><span class="insight-badge" style="color:${bcolor}">${sign}${it.brecha}%</span></div>`;
+    }
+    return `<div class="insight-item"><strong>${it.label}</strong><span class="insight-badge" style="color:${cProm(it.prom)}">${it.prom}%</span></div>`;
+  }).join('')}</div></div>`;
+
+  cont.innerHTML=[
+    mk('Fortalezas (promedio L+M)', '#10b981', top, 'prom'),
+    mk('Riesgo prioritario', '#ef4444', riesgo, 'prom'),
+    mk('Mayor brecha Lectura - Matemática', 'var(--accent)', brechas, 'brecha')
+  ].join('');
+}
+
+function initToolbar(){
+  const goBtn=document.getElementById('btn-go-course');
+  const exportBtn=document.getElementById('btn-export-csv');
+  const exportPngBtn=document.getElementById('btn-export-png');
+  const exportSvgBtn=document.getElementById('btn-export-svg');
+  const input=document.getElementById('course-search');
+  if(goBtn) goBtn.addEventListener('click',handleGoCourse);
+  if(exportBtn) exportBtn.addEventListener('click',exportCSV);
+  if(exportPngBtn) exportPngBtn.addEventListener('click',()=>{ exportPNGs(); });
+  if(exportSvgBtn) exportSvgBtn.addEventListener('click',()=>{ exportSVGs(); });
+  if(input) input.addEventListener('keydown',e=>{ if(e.key==='Enter') handleGoCourse(); });
+  window.addEventListener('resize',()=>resizeAllCharts());
+}
+// INIT
+// ══════════════════════════════════════════
+initToolbar();
+updateHeader();
+renderPage('resumen');
+
+</script>
+</body>
+</html>
