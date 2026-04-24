@@ -158,6 +158,20 @@ canvas{display:block;width:100%!important;max-width:100%;height:auto!important;m
 .simce-card-tools{display:flex;align-items:center;gap:8px}
 .simce-sort-btn{padding:5px 8px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:#d9e6ff;font-size:10px;font-weight:700;cursor:pointer;font-family:'Sora',sans-serif;text-transform:uppercase;letter-spacing:.5px}
 .simce-sort-btn:hover{border-color:var(--accent);color:var(--accent)}
+.cmp-kpi-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.cmp-kpi{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px}
+.cmp-kpi .val{font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:800;line-height:1}
+.cmp-kpi .lbl{font-size:11px;color:var(--muted);margin-top:6px;text-transform:uppercase;letter-spacing:.8px}
+.cmp-kpi .sub{font-size:11px;color:var(--muted);margin-top:6px}
+.cmp-insights{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.cmp-list{display:flex;flex-direction:column;gap:8px}
+.cmp-item{display:flex;justify-content:space-between;gap:8px;align-items:flex-start;font-size:12px}
+.cmp-item b{font-size:12px}
+.cmp-item .muted{font-size:10px;color:var(--muted)}
+.cmp-badge{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;border-radius:6px;padding:2px 7px;white-space:nowrap}
+.cmp-alert{background:rgba(239,68,68,.16);color:#ef4444}
+.cmp-critical{background:rgba(245,158,11,.18);color:#f59e0b}
+.cmp-gap{background:rgba(56,189,248,.18);color:var(--accent)}
 
 /* ── PANEL CURRICULAR ── */
 .bc-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px}
@@ -206,6 +220,7 @@ canvas{display:block;width:100%!important;max-width:100%;height:auto!important;m
   .prio-kpi-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
   .simce-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .simce-detail-grid{grid-template-columns:1fr}
+  .cmp-kpi-grid,.cmp-insights{grid-template-columns:1fr}
   .eje-level-cards{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
   .card{padding:14px}
 }
@@ -254,6 +269,7 @@ canvas{display:block;width:100%!important;max-width:100%;height:auto!important;m
   <button class="tab" onclick="showPage('ejes')"><span class="tab-ico">📐</span><span class="tab-txt">Ejes Matemática</span></button>
   <button class="tab" onclick="showPage('prioridades')"><span class="tab-ico">🎯</span><span class="tab-txt">Prioridades</span></button>
   <button class="tab" onclick="showPage('simce')"><span class="tab-ico">🧪</span><span class="tab-txt">SIMCE 2026</span></button>
+  <button class="tab" onclick="showPage('comparativo')"><span class="tab-ico">📉</span><span class="tab-txt">Comparativo 25–26</span></button>
   <button class="tab" onclick="showPage('detalle')"><span class="tab-ico">🔍</span><span class="tab-txt">Detalle por Curso</span></button>
 </div>
 
@@ -301,6 +317,30 @@ canvas{display:block;width:100%!important;max-width:100%;height:auto!important;m
       <span class="card-badge badge-ambas">Accionable</span>
     </div>
     <div id="insights-grid" class="insights-grid"></div>
+  </div>
+</div>
+
+<!-- COMPARATIVO -->
+<div id="page-comparativo" class="page">
+  <div style="font-size:12px;color:var(--muted);margin-bottom:16px;background:var(--surface);border:1px solid var(--border);padding:10px 14px;border-radius:8px;display:flex;align-items:center;gap:8px">
+    <span>📌</span> Comparativo DIA <strong>2025 vs 2026</strong> para Lectura y Matemática por ciclo, nivel y curso. Se destacan bajas relevantes, cursos críticos y brechas principales.
+  </div>
+  <div id="cmp-kpis" class="cmp-kpi-grid"></div>
+  <div class="charts-2col" style="margin-bottom:16px">
+    <div class="card"><div class="card-header"><span class="card-title">Lectura por ciclo — 2025 vs 2026</span><span class="card-badge badge-lectura">Lectura</span></div><canvas id="ch-cmp-ciclo-lec"></canvas></div>
+    <div class="card"><div class="card-header"><span class="card-title">Matemática por ciclo — 2025 vs 2026</span><span class="card-badge badge-mat">Matemática</span></div><canvas id="ch-cmp-ciclo-mat"></canvas></div>
+  </div>
+  <div class="charts-2col" style="margin-bottom:16px">
+    <div class="card"><div class="card-header"><span class="card-title">Lectura por nivel — 2025 vs 2026</span><span class="card-badge badge-lectura">Niveles</span></div><canvas id="ch-cmp-nivel-lec"></canvas></div>
+    <div class="card"><div class="card-header"><span class="card-title">Matemática por nivel — 2025 vs 2026</span><span class="card-badge badge-mat">Niveles</span></div><canvas id="ch-cmp-nivel-mat"></canvas></div>
+  </div>
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-header"><span class="card-title">Focos para coordinadoras</span><span class="card-badge badge-ambas">Bajas · Críticos · Brechas</span></div>
+    <div id="cmp-insights" class="cmp-insights"></div>
+  </div>
+  <div class="card">
+    <div class="card-header"><span class="card-title">Comparativo por curso (2025–2026)</span><span class="card-badge badge-ambas">Detalle por curso</span></div>
+    <div id="cmp-tabla"></div>
   </div>
 </div>
 
@@ -517,6 +557,8 @@ const BC_OA = {"2": {"OA1": "Contar números del 0 al 1 000 de 2 en 2, de 5 en 5
 // ══════════════════════════════════════════
 // STATE & HELPERS
 // ══════════════════════════════════════════
+const RAW_2025 = {"lectura":[{"nivel":"2","letra":"A","ciclo":"1° Ciclo","label":"2°A","n":39,"prom":60.8,"hab":{"Localizar":69.2,"Interpretar y relacionar":72.1,"Reflexionar":41.0}},{"nivel":"2","letra":"B","ciclo":"1° Ciclo","label":"2°B","n":36,"prom":58.5,"hab":{"Localizar":71.8,"Interpretar y relacionar":66.4,"Reflexionar":37.5}},{"nivel":"2","letra":"C","ciclo":"1° Ciclo","label":"2°C","n":41,"prom":54.2,"hab":{"Localizar":69.9,"Interpretar y relacionar":69.5,"Reflexionar":23.2}},{"nivel":"3","letra":"A","ciclo":"1° Ciclo","label":"3°A","n":44,"prom":51.6,"hab":{"Localizar":61.8,"Interpretar y relacionar":67.8,"Reflexionar":25.0}},{"nivel":"3","letra":"B","ciclo":"1° Ciclo","label":"3°B","n":43,"prom":55.5,"hab":{"Localizar":60.0,"Interpretar y relacionar":61.0,"Reflexionar":45.3}},{"nivel":"3","letra":"C","ciclo":"1° Ciclo","label":"3°C","n":44,"prom":57.9,"hab":{"Localizar":57.3,"Interpretar y relacionar":62.9,"Reflexionar":53.4}},{"nivel":"4","letra":"A","ciclo":"1° Ciclo","label":"4°A","n":41,"prom":63.6,"hab":{"Localizar":76.4,"Interpretar y relacionar":73.0,"Reflexionar":41.5}},{"nivel":"4","letra":"B","ciclo":"1° Ciclo","label":"4°B","n":44,"prom":59.0,"hab":{"Localizar":71.2,"Interpretar y relacionar":66.1,"Reflexionar":39.8}},{"nivel":"4","letra":"C","ciclo":"1° Ciclo","label":"4°C","n":44,"prom":62.8,"hab":{"Localizar":73.9,"Interpretar y relacionar":63.3,"Reflexionar":51.1}},{"nivel":"4","letra":"D","ciclo":"1° Ciclo","label":"4°D","n":31,"prom":66.6,"hab":{"Localizar":58.1,"Interpretar y relacionar":64.3,"Reflexionar":77.4}},{"nivel":"5","letra":"A","ciclo":"2° Ciclo","label":"5°A","n":40,"prom":63.9,"hab":{"Localizar":64.1,"Interpretar y relacionar":53.2,"Reflexionar":74.4}},{"nivel":"5","letra":"B","ciclo":"2° Ciclo","label":"5°B","n":42,"prom":60.4,"hab":{"Localizar":70.5,"Interpretar y relacionar":52.4,"Reflexionar":58.3}},{"nivel":"5","letra":"C","ciclo":"2° Ciclo","label":"5°C","n":44,"prom":54.5,"hab":{"Localizar":62.8,"Interpretar y relacionar":49.7,"Reflexionar":51.1}},{"nivel":"5","letra":"D","ciclo":"2° Ciclo","label":"5°D","n":43,"prom":54.8,"hab":{"Localizar":60.8,"Interpretar y relacionar":49.6,"Reflexionar":54.1}},{"nivel":"6","letra":"A","ciclo":"2° Ciclo","label":"6°A","n":37,"prom":46.2,"hab":{"Localizar":38.5,"Interpretar y relacionar":42.0,"Reflexionar":58.1}},{"nivel":"6","letra":"B","ciclo":"2° Ciclo","label":"6°B","n":36,"prom":40.8,"hab":{"Localizar":45.1,"Interpretar y relacionar":39.8,"Reflexionar":37.5}},{"nivel":"6","letra":"C","ciclo":"2° Ciclo","label":"6°C","n":36,"prom":49.6,"hab":{"Localizar":54.2,"Interpretar y relacionar":48.4,"Reflexionar":46.2}},{"nivel":"6","letra":"D","ciclo":"2° Ciclo","label":"6°D","n":39,"prom":47.0,"hab":{"Localizar":50.0,"Interpretar y relacionar":47.8,"Reflexionar":43.3}},{"nivel":"7","letra":"A","ciclo":"2° Ciclo","label":"7°A","n":33,"prom":53.2,"hab":{"Localizar":48.5,"Interpretar y relacionar":49.8,"Reflexionar":61.2}},{"nivel":"7","letra":"B","ciclo":"2° Ciclo","label":"7°B","n":35,"prom":45.0,"hab":{"Localizar":46.4,"Interpretar y relacionar":39.1,"Reflexionar":49.4}},{"nivel":"7","letra":"C","ciclo":"2° Ciclo","label":"7°C","n":39,"prom":48.4,"hab":{"Localizar":48.7,"Interpretar y relacionar":48.0,"Reflexionar":48.5}},{"nivel":"7","letra":"D","ciclo":"2° Ciclo","label":"7°D","n":39,"prom":49.7,"hab":{"Localizar":53.8,"Interpretar y relacionar":48.7,"Reflexionar":46.7}},{"nivel":"8","letra":"A","ciclo":"2° Ciclo","label":"8°A","n":37,"prom":62.6,"hab":{"Localizar":79.1,"Interpretar y relacionar":56.6,"Reflexionar":52.3}},{"nivel":"8","letra":"B","ciclo":"2° Ciclo","label":"8°B","n":32,"prom":51.3,"hab":{"Localizar":66.4,"Interpretar y relacionar":45.2,"Reflexionar":42.2}},{"nivel":"8","letra":"C","ciclo":"2° Ciclo","label":"8°C","n":38,"prom":58.1,"hab":{"Localizar":75.0,"Interpretar y relacionar":51.4,"Reflexionar":47.8}},{"nivel":"8","letra":"D","ciclo":"2° Ciclo","label":"8°D","n":26,"prom":62.4,"hab":{"Localizar":83.7,"Interpretar y relacionar":46.7,"Reflexionar":56.7}},{"nivel":"I","letra":"A","ciclo":"Ens. Media","label":"I A","n":35,"prom":58.2,"hab":{"Localizar":65.7,"Interpretar y relacionar":56.1,"Reflexionar":52.7}},{"nivel":"I","letra":"B","ciclo":"Ens. Media","label":"I B","n":35,"prom":45.9,"hab":{"Localizar":55.7,"Interpretar y relacionar":42.3,"Reflexionar":39.6}},{"nivel":"I","letra":"C","ciclo":"Ens. Media","label":"I C","n":38,"prom":56.5,"hab":{"Localizar":64.5,"Interpretar y relacionar":52.8,"Reflexionar":52.3}},{"nivel":"I","letra":"D","ciclo":"Ens. Media","label":"I D","n":37,"prom":55.0,"hab":{"Localizar":62.2,"Interpretar y relacionar":50.8,"Reflexionar":52.1}},{"nivel":"II","letra":"A","ciclo":"Ens. Media","label":"II A","n":34,"prom":82.5,"hab":{"Localizar":87.3,"Interpretar y relacionar":75.2,"Reflexionar":84.9}},{"nivel":"II","letra":"B","ciclo":"Ens. Media","label":"II B","n":37,"prom":74.0,"hab":{"Localizar":82.9,"Interpretar y relacionar":63.7,"Reflexionar":75.3}},{"nivel":"II","letra":"C","ciclo":"Ens. Media","label":"II C","n":32,"prom":50.6,"hab":{"Localizar":56.2,"Interpretar y relacionar":49.9,"Reflexionar":45.7}},{"nivel":"II","letra":"D","ciclo":"Ens. Media","label":"II D","n":40,"prom":57.7,"hab":{"Localizar":70.8,"Interpretar y relacionar":52.4,"Reflexionar":50.0}}],"matematica":[{"nivel":"3","letra":"A","ciclo":"1° Ciclo","label":"3°A","n":44,"prom":68.0,"hab":{"OA2":84.1,"OA3":90.9,"OA5":37.5,"OA6":66.8,"OA8":53.4,"OA9":50.8,"OA10":58.8,"OA12":69.3,"OA15":81.8,"OA21":81.8,"OA22":67.0,"OA25":73.9}},{"nivel":"3","letra":"B","ciclo":"1° Ciclo","label":"3°B","n":43,"prom":63.4,"hab":{"OA2":76.7,"OA3":73.3,"OA5":46.5,"OA6":58.1,"OA8":51.7,"OA9":49.6,"OA10":55.8,"OA12":56.4,"OA15":75.2,"OA21":68.6,"OA22":68.6,"OA25":80.2}},{"nivel":"3","letra":"C","ciclo":"1° Ciclo","label":"3°C","n":44,"prom":61.8,"hab":{"OA2":73.9,"OA3":81.8,"OA5":29.5,"OA6":48.2,"OA8":56.8,"OA9":50.8,"OA10":51.4,"OA12":60.2,"OA15":75.0,"OA21":69.3,"OA22":68.2,"OA25":76.1}},{"nivel":"4","letra":"A","ciclo":"1° Ciclo","label":"4°A","n":41,"prom":57.8,"hab":{"OA1":65.2,"OA3":66.3,"OA5":48.2,"OA6":39.0,"OA7":49.5,"OA8":41.5,"OA9":51.2,"OA13":59.3,"OA14":65.2,"OA18":34.1,"OA22":90.2,"OA23":54.9,"OA25":72.0,"OA27":72.0}},{"nivel":"4","letra":"B","ciclo":"1° Ciclo","label":"4°B","n":44,"prom":49.0,"hab":{"OA1":61.9,"OA3":50.7,"OA5":40.3,"OA6":20.5,"OA7":35.2,"OA8":31.1,"OA9":59.1,"OA13":49.6,"OA14":59.7,"OA18":22.7,"OA22":81.8,"OA23":45.5,"OA25":63.6,"OA27":63.6}},{"nivel":"4","letra":"C","ciclo":"1° Ciclo","label":"4°C","n":44,"prom":52.3,"hab":{"OA1":58.0,"OA3":66.1,"OA5":39.2,"OA6":18.2,"OA7":46.3,"OA8":44.7,"OA9":38.6,"OA13":50.4,"OA14":56.2,"OA18":29.5,"OA22":90.9,"OA23":44.3,"OA25":75.0,"OA27":75.0}},{"nivel":"4","letra":"D","ciclo":"1° Ciclo","label":"4°D","n":30,"prom":58.6,"hab":{"OA1":60.8,"OA3":65.0,"OA5":52.5,"OA6":56.7,"OA7":60.2,"OA8":27.8,"OA9":50.0,"OA13":53.9,"OA14":68.3,"OA18":40.0,"OA22":80.0,"OA23":65.0,"OA25":70.0,"OA27":70.0}},{"nivel":"5","letra":"A","ciclo":"2° Ciclo","label":"5°A","n":38,"prom":44.7,"hab":{"OA1":80.3,"OA3":50.9,"OA4":37.7,"OA6":45.9,"OA7":41.2,"OA10":10.5,"OA11":10.5,"OA13":43.4,"OA14":51.3,"OA15":18.4,"OA17":52.6,"OA18":50.0,"OA19":84.2,"OA21":59.7,"OA22":39.5,"OA23":53.9,"OA24":21.1,"OA26":52.6}},{"nivel":"5","letra":"B","ciclo":"2° Ciclo","label":"5°B","n":38,"prom":47.6,"hab":{"OA1":68.4,"OA3":56.1,"OA4":40.4,"OA6":48.1,"OA7":50.9,"OA10":18.4,"OA11":18.4,"OA13":32.9,"OA14":53.3,"OA15":15.8,"OA17":57.9,"OA18":68.4,"OA19":94.7,"OA21":60.5,"OA22":46.7,"OA23":53.9,"OA24":13.2,"OA26":59.2}},{"nivel":"5","letra":"C","ciclo":"2° Ciclo","label":"5°C","n":37,"prom":42.9,"hab":{"OA1":63.5,"OA3":48.6,"OA4":29.7,"OA6":45.2,"OA7":44.1,"OA10":13.5,"OA11":13.5,"OA13":28.4,"OA14":47.3,"OA15":8.8,"OA17":55.4,"OA18":59.5,"OA19":78.4,"OA21":59.5,"OA22":41.9,"OA23":40.5,"OA24":37.8,"OA26":56.8}},{"nivel":"5","letra":"D","ciclo":"2° Ciclo","label":"5°D","n":36,"prom":42.8,"hab":{"OA1":86.1,"OA3":50.0,"OA4":31.5,"OA6":42.5,"OA7":43.5,"OA10":8.3,"OA11":8.3,"OA13":26.4,"OA14":52.8,"OA15":20.8,"OA17":48.6,"OA18":52.8,"OA19":75.0,"OA21":58.3,"OA22":43.1,"OA23":45.8,"OA24":30.6,"OA26":45.8}},{"nivel":"6","letra":"A","ciclo":"2° Ciclo","label":"6°A","n":41,"prom":41.6,"hab":{"OA2":33.9,"OA3":40.2,"OA4":29.3,"OA5":40.6,"OA7":26.0,"OA8":30.9,"OA11":43.4,"OA13":65.0,"OA16":48.0,"OA18":65.0,"OA19":29.3,"OA23":45.7,"OA24":43.3}},{"nivel":"6","letra":"B","ciclo":"2° Ciclo","label":"6°B","n":35,"prom":44.3,"hab":{"OA2":34.6,"OA3":48.6,"OA4":39.3,"OA5":36.2,"OA7":46.7,"OA8":36.2,"OA11":38.3,"OA13":64.8,"OA16":53.3,"OA18":64.8,"OA19":28.6,"OA23":42.9,"OA24":42.1}},{"nivel":"6","letra":"C","ciclo":"2° Ciclo","label":"6°C","n":29,"prom":51.9,"hab":{"OA2":44.8,"OA3":58.6,"OA4":53.4,"OA5":59.8,"OA7":44.8,"OA8":43.1,"OA11":49.0,"OA13":63.2,"OA16":56.3,"OA18":63.2,"OA19":31.0,"OA23":60.3,"OA24":46.6}},{"nivel":"6","letra":"D","ciclo":"2° Ciclo","label":"6°D","n":30,"prom":50.1,"hab":{"OA2":41.1,"OA3":38.3,"OA4":33.3,"OA5":38.9,"OA7":32.2,"OA8":32.8,"OA11":56.0,"OA13":85.6,"OA16":62.2,"OA18":85.6,"OA19":30.0,"OA23":62.5,"OA24":52.5}},{"nivel":"7","letra":"A","ciclo":"2° Ciclo","label":"7°A","n":38,"prom":36.1,"hab":{"OA1":44.7,"OA3":25.7,"OA4":25.9,"OA6":43.4,"OA8":28.9,"OA11":39.5,"OA14":50.9,"OA16":36.4,"OA18":29.6}},{"nivel":"7","letra":"B","ciclo":"2° Ciclo","label":"7°B","n":41,"prom":38.1,"hab":{"OA1":44.4,"OA3":28.0,"OA4":32.1,"OA6":48.8,"OA8":28.0,"OA11":42.7,"OA14":50.0,"OA16":37.0,"OA18":31.4}},{"nivel":"7","letra":"C","ciclo":"2° Ciclo","label":"7°C","n":39,"prom":37.9,"hab":{"OA1":47.7,"OA3":26.9,"OA4":28.2,"OA6":48.7,"OA8":22.4,"OA11":43.6,"OA14":57.3,"OA16":35.0,"OA18":31.4}},{"nivel":"7","letra":"D","ciclo":"2° Ciclo","label":"7°D","n":36,"prom":43.9,"hab":{"OA1":53.3,"OA3":32.6,"OA4":38.0,"OA6":52.8,"OA8":27.8,"OA11":45.8,"OA14":61.1,"OA16":49.1,"OA18":34.4}},{"nivel":"8","letra":"A","ciclo":"2° Ciclo","label":"8°A","n":35,"prom":56.6,"hab":{"OA1":67.1,"OA2":36.0,"OA3":80.0,"OA8":64.3,"OA10":42.9,"OA12":52.9,"OA13":53.3,"OA15":51.4,"OA16":76.0,"OA17":41.9}},{"nivel":"8","letra":"B","ciclo":"2° Ciclo","label":"8°B","n":42,"prom":42.0,"hab":{"OA1":46.8,"OA2":24.8,"OA3":58.3,"OA8":42.9,"OA10":38.1,"OA12":35.7,"OA13":37.3,"OA15":38.1,"OA16":63.5,"OA17":34.9}},{"nivel":"8","letra":"C","ciclo":"2° Ciclo","label":"8°C","n":40,"prom":46.1,"hab":{"OA1":49.2,"OA2":25.0,"OA3":55.0,"OA8":43.8,"OA10":47.5,"OA12":33.8,"OA13":48.3,"OA15":60.0,"OA16":66.7,"OA17":31.7}},{"nivel":"8","letra":"D","ciclo":"2° Ciclo","label":"8°D","n":41,"prom":50.2,"hab":{"OA1":56.1,"OA2":23.4,"OA3":69.5,"OA8":42.7,"OA10":47.2,"OA12":48.8,"OA13":50.8,"OA15":65.9,"OA16":65.9,"OA17":31.7}},{"nivel":"I","letra":"A","ciclo":"Ens. Media","label":"I A","n":42,"prom":34.0,"hab":{"OA1":45.2,"OA2":50.0,"OA3":36.9,"OA4":39.9,"OA8":23.1,"OA10":23.1,"OA12":30.2,"OA14":23.8}},{"nivel":"I","letra":"B","ciclo":"Ens. Media","label":"I B","n":39,"prom":42.7,"hab":{"OA1":48.7,"OA2":54.1,"OA3":41.7,"OA4":52.7,"OA8":38.1,"OA10":38.1,"OA12":46.6,"OA14":21.8}},{"nivel":"I","letra":"C","ciclo":"Ens. Media","label":"I C","n":36,"prom":28.5,"hab":{"OA1":25.2,"OA2":31.2,"OA3":28.1,"OA4":31.9,"OA8":25.0,"OA10":25.0,"OA12":43.5,"OA14":18.1}},{"nivel":"I","letra":"D","ciclo":"Ens. Media","label":"I D","n":40,"prom":27.0,"hab":{"OA1":27.5,"OA2":31.5,"OA3":22.5,"OA4":30.9,"OA8":27.7,"OA10":27.7,"OA12":31.7,"OA14":16.7}},{"nivel":"II","letra":"A","ciclo":"Ens. Media","label":"II A","n":36,"prom":49.5,"hab":{"OA1":49.0,"OA2":54.3,"OA3":56.1,"OA5":56.3,"OA8":49.3,"OA11":31.7}},{"nivel":"II","letra":"B","ciclo":"Ens. Media","label":"II B","n":31,"prom":57.9,"hab":{"OA1":59.0,"OA2":55.9,"OA3":58.3,"OA5":63.1,"OA8":64.5,"OA11":46.5}},{"nivel":"II","letra":"C","ciclo":"Ens. Media","label":"II C","n":44,"prom":35.5,"hab":{"OA1":29.5,"OA2":43.7,"OA3":36.6,"OA5":36.8,"OA8":35.2,"OA11":31.4}},{"nivel":"II","letra":"D","ciclo":"Ens. Media","label":"II D","n":41,"prom":39.6,"hab":{"OA1":42.9,"OA2":45.5,"OA3":39.5,"OA5":39.2,"OA8":42.1,"OA11":28.3}}]};
+
 let filtro='todos', currentPage='resumen', charts={}, selLec=null, selMat=null, simceFiltro='todos', simceLecturaSort='desc', simceMatSort='desc';
 const C={lec:'#38bdf8',mat:'#f59e0b',alto:'#10b981',bajo:'#ef4444',hc:'#a78bfa',c1:'#10b981',c2:'#38bdf8',grid:'rgba(30,45,69,.6)',txt:'#6b7fa3'};
 const L40=50, L50=66.7;
@@ -851,7 +893,7 @@ function showPage(p){
   currentPage=p;
   document.querySelectorAll('.page').forEach(e=>e.classList.remove('active'));
   document.getElementById('page-'+p).classList.add('active');
-  const pages=['resumen','ranking','brecha','habilidades','ejes','prioridades','simce','detalle'];
+  const pages=['resumen','ranking','brecha','habilidades','ejes','prioridades','simce','comparativo','detalle'];
   document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',pages[i]===p));
   renderPage(p);
   requestAnimationFrame(()=>resizeAllCharts());
@@ -918,6 +960,7 @@ function updateHeader(){
 // ══════════════════════════════════════════
 function renderPage(p){
   if(p==='resumen') renderResumen();
+  else if(p==='comparativo') renderComparativo();
   else if(p==='ranking') renderRanking();
   else if(p==='brecha') renderBrecha();
   else if(p==='habilidades') renderHabilidades();
@@ -958,6 +1001,170 @@ function renderResumen(){
     {label:'Mínimo 4,0',data:all.map(()=>L40),borderColor:'rgba(239,68,68,.5)',borderDash:[5,4],borderWidth:1.5,pointRadius:0,fill:false}
   ]},options:{...CD,plugins:{...CD.plugins,tooltip:{...CD.plugins.tooltip,callbacks:{label:ctx=>ctx.datasetIndex<2?` ${ctx.dataset.label}: ${ctx.raw}%  →  ${p2n(ctx.raw)} [${cat(ctx.raw)}]`:` Aprobación mínima 4,0 (50%)`}}},layout:{padding:{right:8,left:2}}},plugins:[lineaRef()]});
   renderInsights(lec, mat);
+}
+
+// ── COMPARATIVO 2025-2026 ──
+function weightedProm(cursos){
+  const total=cursos.reduce((s,c)=>s+(c.n||0),0);
+  if(!total) return 0;
+  return +((cursos.reduce((s,c)=>s+((c.prom||0)*(c.n||0)),0))/total).toFixed(1);
+}
+function groupedWeighted(cursos, keyFn){
+  const acc={};
+  cursos.forEach(c=>{
+    const k=keyFn(c);
+    if(!k) return;
+    if(!acc[k]) acc[k]={sum:0,n:0};
+    acc[k].sum += (c.prom||0)*(c.n||0);
+    acc[k].n += (c.n||0);
+  });
+  const out={};
+  Object.entries(acc).forEach(([k,v])=>{ if(v.n>0) out[k]=+(v.sum/v.n).toFixed(1); });
+  return out;
+}
+function levelLabel(n){ return /^\d+$/.test(String(n))?`${n}°`:String(n); }
+function renderComparativo(){
+  const NIV=['2','3','4','5','6','7','8','I','II'];
+  const CIC=['1° Ciclo','2° Ciclo','Ens. Media'];
+  const lec26=filt(RAW.lectura), mat26=filt(RAW.matematica);
+  const lec25=filt(RAW_2025.lectura), mat25=filt(RAW_2025.matematica);
+  const hasAny=[...lec26,...mat26,...lec25,...mat25].length>0;
+  const kpiEl=document.getElementById('cmp-kpis');
+  const insEl=document.getElementById('cmp-insights');
+  const tabEl=document.getElementById('cmp-tabla');
+  if(!hasAny){
+    kpiEl.innerHTML='<div class="cmp-kpi"><div class="val">—</div><div class="lbl">Sin datos para el filtro actual</div></div>';
+    if(insEl) insEl.innerHTML='';
+    if(tabEl) tabEl.innerHTML='';
+    ['cmp-ciclo-lec','cmp-ciclo-mat','cmp-nivel-lec','cmp-nivel-mat'].forEach(k=>kill(k));
+    return;
+  }
+
+  const lc25=groupedWeighted(lec25,c=>c.ciclo), lc26=groupedWeighted(lec26,c=>c.ciclo);
+  const mc25=groupedWeighted(mat25,c=>c.ciclo), mc26=groupedWeighted(mat26,c=>c.ciclo);
+  const cicLabels=CIC.filter(c=>lc25[c]!=null||lc26[c]!=null||mc25[c]!=null||mc26[c]!=null);
+
+  const ln25=groupedWeighted(lec25,c=>c.nivel), ln26=groupedWeighted(lec26,c=>c.nivel);
+  const mn25=groupedWeighted(mat25,c=>c.nivel), mn26=groupedWeighted(mat26,c=>c.nivel);
+  const nivLabels=NIV.filter(n=>ln25[n]!=null||ln26[n]!=null||mn25[n]!=null||mn26[n]!=null);
+  const nivText=nivLabels.map(levelLabel);
+
+  kill('cmp-ciclo-lec');
+  charts['cmp-ciclo-lec']=new Chart(document.getElementById('ch-cmp-ciclo-lec'),{
+    type:'bar',
+    data:{labels:cicLabels,datasets:[
+      {label:'2025',data:cicLabels.map(c=>lc25[c]??null),backgroundColor:'rgba(56,189,248,.22)',borderColor:'rgba(125,211,252,.9)',borderWidth:2,borderRadius:4},
+      {label:'2026',data:cicLabels.map(c=>lc26[c]??null),backgroundColor:'rgba(56,189,248,.55)',borderColor:'rgba(56,189,248,1)',borderWidth:2,borderRadius:4}
+    ]},
+    options:{...CD,plugins:{...CD.plugins,legend:{display:true},tooltip:ttNota()},layout:{padding:{right:8,left:2}}},
+    plugins:[lineaRef()]
+  });
+  kill('cmp-ciclo-mat');
+  charts['cmp-ciclo-mat']=new Chart(document.getElementById('ch-cmp-ciclo-mat'),{
+    type:'bar',
+    data:{labels:cicLabels,datasets:[
+      {label:'2025',data:cicLabels.map(c=>mc25[c]??null),backgroundColor:'rgba(245,158,11,.22)',borderColor:'rgba(251,191,36,.9)',borderWidth:2,borderRadius:4},
+      {label:'2026',data:cicLabels.map(c=>mc26[c]??null),backgroundColor:'rgba(245,158,11,.55)',borderColor:'rgba(245,158,11,1)',borderWidth:2,borderRadius:4}
+    ]},
+    options:{...CD,plugins:{...CD.plugins,legend:{display:true},tooltip:ttNota()},layout:{padding:{right:8,left:2}}},
+    plugins:[lineaRef()]
+  });
+  kill('cmp-nivel-lec');
+  charts['cmp-nivel-lec']=new Chart(document.getElementById('ch-cmp-nivel-lec'),{
+    type:'bar',
+    data:{labels:nivText,datasets:[
+      {label:'2025',data:nivLabels.map(n=>ln25[n]??null),backgroundColor:'rgba(56,189,248,.22)',borderColor:'rgba(125,211,252,.9)',borderWidth:2,borderRadius:4},
+      {label:'2026',data:nivLabels.map(n=>ln26[n]??null),backgroundColor:'rgba(56,189,248,.55)',borderColor:'rgba(56,189,248,1)',borderWidth:2,borderRadius:4}
+    ]},
+    options:{...CD,plugins:{...CD.plugins,legend:{display:true},tooltip:ttNota()},layout:{padding:{right:8,left:2}}},
+    plugins:[lineaRef()]
+  });
+  kill('cmp-nivel-mat');
+  charts['cmp-nivel-mat']=new Chart(document.getElementById('ch-cmp-nivel-mat'),{
+    type:'bar',
+    data:{labels:nivText,datasets:[
+      {label:'2025',data:nivLabels.map(n=>mn25[n]??null),backgroundColor:'rgba(245,158,11,.22)',borderColor:'rgba(251,191,36,.9)',borderWidth:2,borderRadius:4},
+      {label:'2026',data:nivLabels.map(n=>mn26[n]??null),backgroundColor:'rgba(245,158,11,.55)',borderColor:'rgba(245,158,11,1)',borderWidth:2,borderRadius:4}
+    ]},
+    options:{...CD,plugins:{...CD.plugins,legend:{display:true},tooltip:ttNota()},layout:{padding:{right:8,left:2}}},
+    plugins:[lineaRef()]
+  });
+
+  const lec25Map=Object.fromEntries(lec25.map(c=>[c.label,c]));
+  const lec26Map=Object.fromEntries(lec26.map(c=>[c.label,c]));
+  const mat25Map=Object.fromEntries(mat25.map(c=>[c.label,c]));
+  const mat26Map=Object.fromEntries(mat26.map(c=>[c.label,c]));
+  const meta={};
+  [...lec25,...lec26,...mat25,...mat26].forEach(c=>{ if(!meta[c.label]) meta[c.label]={nivel:c.nivel,ciclo:c.ciclo,label:c.label}; });
+  const allLabels=[...new Set(Object.keys(meta))].sort((a,b)=>{
+    const na=meta[a]?.nivel, nb=meta[b]?.nivel;
+    const oa=NIV.indexOf(na), ob=NIV.indexOf(nb);
+    if(oa!==ob) return oa-ob;
+    return a.localeCompare(b,'es');
+  });
+  const toDelta=(a,b)=>(a!=null&&b!=null)?+(a-b).toFixed(1):null;
+  const rows=allLabels.map(label=>{
+    const l25=lec25Map[label]?.prom??null, l26=lec26Map[label]?.prom??null;
+    const m25=mat25Map[label]?.prom??null, m26=mat26Map[label]?.prom??null;
+    const dL=toDelta(l26,l25), dM=toDelta(m26,m25);
+    const b25=toDelta(l25,m25), b26=toDelta(l26,m26);
+    const db=toDelta(b26,b25);
+    const baja=(dL!=null&&dL<=-5)||(dM!=null&&dM<=-5);
+    const critico=(l26!=null&&l26<50)||(m26!=null&&m26<50)||(dL!=null&&dL<=-8)||(dM!=null&&dM<=-8);
+    const risk=(critico?100:0)+(baja?30:0)+Math.max(0,-(dL||0))+Math.max(0,-(dM||0));
+    return {label,nivel:meta[label]?.nivel||'—',ciclo:meta[label]?.ciclo||'—',l25,l26,m25,m26,dL,dM,b25,b26,db,baja,critico,risk};
+  }).sort((a,b)=>b.risk-a.risk||a.label.localeCompare(b.label,'es'));
+
+  const bajas=[...rows].filter(r=>r.baja).sort((a,b)=>Math.min(a.dL??0,a.dM??0)-Math.min(b.dL??0,b.dM??0));
+  const criticos=[...rows].filter(r=>r.critico).sort((a,b)=>{
+    const ap=Math.min(a.l26??101,a.m26??101), bp=Math.min(b.l26??101,b.m26??101);
+    return ap-bp;
+  });
+  const brechas=[...rows].filter(r=>r.db!=null).sort((a,b)=>Math.abs(b.db)-Math.abs(a.db));
+  const pL25=weightedProm(lec25), pL26=weightedProm(lec26), pM25=weightedProm(mat25), pM26=weightedProm(mat26);
+  const dGlobalL=+(pL26-pL25).toFixed(1), dGlobalM=+(pM26-pM25).toFixed(1);
+  const sgn=v=>v>0?`+${v}%`:`${v}%`;
+  const fmt=v=>v==null?'—':`${v}%`;
+  const deltaTag=v=>v==null?'<span style="color:var(--muted)">—</span>':`<span style="color:${v>=0?C.alto:C.bajo};font-family:'JetBrains Mono',monospace;font-weight:700">${v>0?'+':''}${v}%</span>`;
+
+  kpiEl.innerHTML=`
+    <div class="cmp-kpi" style="border-top:3px solid var(--lectura)"><div class="val" style="color:${dGlobalL>=0?C.alto:C.bajo}">${sgn(dGlobalL)}</div><div class="lbl">Variación global Lectura</div><div class="sub">2025: ${pL25}% · 2026: ${pL26}%</div></div>
+    <div class="cmp-kpi" style="border-top:3px solid var(--mat)"><div class="val" style="color:${dGlobalM>=0?C.alto:C.bajo}">${sgn(dGlobalM)}</div><div class="lbl">Variación global Matemática</div><div class="sub">2025: ${pM25}% · 2026: ${pM26}%</div></div>
+    <div class="cmp-kpi" style="border-top:3px solid var(--accent)"><div class="val" style="color:var(--text)">${rows.length}</div><div class="lbl">Cursos analizados</div><div class="sub">${bajas.length} con baja relevante · ${criticos.length} críticos</div></div>
+  `;
+
+  const mkItems=(arr,badgeClass,fmtText)=>arr.slice(0,5).map(r=>`
+      <div class="cmp-item">
+        <div><b>${r.label}</b><div class="muted">${r.ciclo}</div></div>
+        <span class="cmp-badge ${badgeClass}">${fmtText(r)}</span>
+      </div>`).join('') || '<div style="font-size:12px;color:var(--muted)">Sin casos en este filtro.</div>';
+  if(insEl){
+    insEl.innerHTML=`
+      <div class="insight-box"><div class="insight-title" style="color:#ef4444">Bajas relevantes</div><div class="cmp-list">${mkItems(bajas,'cmp-alert',r=>`Δ L:${r.dL??'—'} · M:${r.dM??'—'}`)}</div></div>
+      <div class="insight-box"><div class="insight-title" style="color:#f59e0b">Cursos críticos 2026</div><div class="cmp-list">${mkItems(criticos,'cmp-critical',r=>`L:${fmt(r.l26)} · M:${fmt(r.m26)}`)}</div></div>
+      <div class="insight-box"><div class="insight-title" style="color:var(--accent)">Brechas principales</div><div class="cmp-list">${mkItems(brechas,'cmp-gap',r=>`Δ brecha: ${r.db>0?'+':''}${r.db}%`)}</div></div>
+    `;
+  }
+
+  let html=`<div style="font-size:11px;color:var(--muted);margin-bottom:10px">Comparación por curso: se muestran ambos años cuando existe dato (2025 y/o 2026).</div>`;
+  html+=`<table class="ranking-table"><thead><tr><th>Nivel</th><th>Curso</th><th>L 2025</th><th>L 2026</th><th>Δ L</th><th>M 2025</th><th>M 2026</th><th>Δ M</th><th>Δ Brecha (L-M)</th><th>Foco</th></tr></thead><tbody>`;
+  rows.forEach(r=>{
+    const foco=r.critico?'<span class="cmp-badge cmp-critical">Crítico</span>':(r.baja?'<span class="cmp-badge cmp-alert">Baja</span>':'<span class="cmp-badge cmp-gap">Monitoreo</span>');
+    html+=`<tr>
+      <td>${levelLabel(r.nivel)}</td>
+      <td class="rank-curso">${r.label}</td>
+      <td style="color:${r.l25!=null?cProm(r.l25):'var(--muted)'}">${fmt(r.l25)}</td>
+      <td style="color:${r.l26!=null?cProm(r.l26):'var(--muted)'}">${fmt(r.l26)}</td>
+      <td>${deltaTag(r.dL)}</td>
+      <td style="color:${r.m25!=null?cProm(r.m25):'var(--muted)'}">${fmt(r.m25)}</td>
+      <td style="color:${r.m26!=null?cProm(r.m26):'var(--muted)'}">${fmt(r.m26)}</td>
+      <td>${deltaTag(r.dM)}</td>
+      <td>${deltaTag(r.db)}</td>
+      <td>${foco}</td>
+    </tr>`;
+  });
+  html+='</tbody></table>';
+  tabEl.innerHTML=html;
 }
 
 // ── RANKING ──
@@ -1890,7 +2097,7 @@ function stabilizeChartForExport(ch){
 
 async function exportPNGs(){
   const prevPage=currentPage;
-  const pages=['resumen','ranking','brecha','habilidades','ejes','prioridades','simce','detalle'];
+  const pages=['resumen','ranking','brecha','habilidades','ejes','prioridades','simce','comparativo','detalle'];
   const pause=()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
   const sleep=(ms)=>new Promise(r=>setTimeout(r,ms));
   const slug=v=>String(v||'grafico')
@@ -1984,7 +2191,7 @@ async function exportPNGs(){
 
 async function exportSVGs(){
   const prevPage=currentPage;
-  const pages=['resumen','ranking','brecha','habilidades','ejes','prioridades','simce','detalle'];
+  const pages=['resumen','ranking','brecha','habilidades','ejes','prioridades','simce','comparativo','detalle'];
   const pause=()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
   const sleep=(ms)=>new Promise(r=>setTimeout(r,ms));
   const slug=v=>String(v||'grafico')
