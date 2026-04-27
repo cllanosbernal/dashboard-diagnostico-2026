@@ -1387,6 +1387,29 @@ function diaResponseSummary(row){
   }).join(' · ');
 }
 
+function diaResolvePdfUrl(row){
+  const pageNum=Number(row?.pagina_prueba);
+  const pageSuffix=Number.isFinite(pageNum)&&pageNum>0?`#page=${pageNum}`:'';
+  const raw=(row?.pdf_prueba_url||'').toString().trim();
+  if(raw && !/^file:\/\//i.test(raw)){
+    return raw;
+  }
+
+  let fileName=(row?.pdf_prueba||'').toString().trim();
+  if(!fileName && raw){
+    try{
+      const u=new URL(raw);
+      fileName=decodeURIComponent((u.pathname||'').split('/').pop()||'');
+    }catch(_){
+      const m=raw.match(/([^\/#?]+\.pdf)/i);
+      fileName=m?decodeURIComponent(m[1]):'';
+    }
+  }
+  if(!fileName) return '';
+  const encoded=fileName.split('/').map(seg=>encodeURIComponent(seg)).join('/');
+  return `dia_pruebas_pdf/${encoded}${pageSuffix}`;
+}
+
 function openDiaQuestionModal(qid){
   const row=diaFindQuestionById(qid);
   if(!row){
@@ -1408,7 +1431,7 @@ function openDiaQuestionModal(qid){
   const distractor=row.distractor?`${row.distractor} (${parsePctText(row.pct_distractor)??'—'}%)`:'—';
   const noResp=parsePctText(row.no_responde);
   const prompt=row.texto_pregunta?diaEsc(row.texto_pregunta):'Sin enunciado disponible.';
-  const pdfUrl=row.pdf_prueba_url?encodeURI(row.pdf_prueba_url):'';
+  const pdfUrl=diaResolvePdfUrl(row);
 
   bodyEl.innerHTML=`
     <div class="diaq-grid">
