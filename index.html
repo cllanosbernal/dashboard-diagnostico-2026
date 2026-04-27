@@ -7,6 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
 :root{--bg:#0a0e1a;--surface:#111827;--surface2:#1a2236;--border:#1e2d45;--text:#e8edf5;--muted:#6b7fa3;--lectura:#38bdf8;--lectura-dim:#0c2d42;--mat:#f59e0b;--mat-dim:#3d2800;--alto:#10b981;--bajo:#ef4444;--hc:#a78bfa;--hc-dim:#2d1b5e;--accent:#38bdf8;--r:12px}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -201,6 +202,14 @@ canvas{display:block;width:100%!important;max-width:100%;height:auto!important;m
 .diaq-pdf-link{display:inline-block;padding:7px 10px;border-radius:7px;border:1px solid var(--border);background:rgba(56,189,248,.14);color:var(--accent);text-decoration:none;font-size:12px;font-weight:700}
 .diaq-pdf-frame{width:100%;height:62vh;border:1px solid var(--border);border-radius:8px;background:#0b1220}
 .diaq-pdf-empty{font-size:12px;color:var(--muted);padding:12px;border:1px dashed var(--border);border-radius:8px}
+.diaq-pdf-viewer{border:1px solid var(--border);border-radius:8px;background:#0b1220;overflow:hidden}
+.diaq-pdf-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 10px;border-bottom:1px solid var(--border);background:rgba(17,24,39,.95)}
+.diaq-pdf-btn{padding:5px 9px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:12px;font-weight:700;cursor:pointer}
+.diaq-pdf-btn:disabled{opacity:.45;cursor:not-allowed}
+.diaq-pdf-page{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text);min-width:92px}
+.diaq-pdf-status{font-size:11px;color:var(--muted)}
+.diaq-pdf-canvas-wrap{max-height:65vh;overflow:auto;padding:8px;display:flex;justify-content:center}
+.diaq-pdf-canvas{display:block;background:#fff;border-radius:4px;max-width:100%}
 
 /* ── PANEL CURRICULAR ── */
 .bc-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px}
@@ -275,6 +284,7 @@ canvas{display:block;width:100%!important;max-width:100%;height:auto!important;m
   .diaq-grid{grid-template-columns:1fr 1fr}
   .diaq-title{font-size:16px;padding-right:90px}
   .diaq-pdf-frame{height:56vh}
+  .diaq-pdf-canvas-wrap{max-height:56vh}
 }
 </style>
 </head>
@@ -1410,6 +1420,114 @@ function diaResolvePdfUrl(row){
   return `dia_pruebas_pdf/${encoded}${pageSuffix}`;
 }
 
+const diaPdfState={doc:null,loadingTask:null,renderTask:null,page:1,total:0,target:1,url:'',token:0};
+
+function cleanupDiaPdf(){
+  try{ if(diaPdfState.renderTask?.cancel) diaPdfState.renderTask.cancel(); }catch(_){}
+  try{ if(diaPdfState.loadingTask?.destroy) diaPdfState.loadingTask.destroy(); }catch(_){}
+  diaPdfState.doc=null;
+  diaPdfState.loadingTask=null;
+  diaPdfState.renderTask=null;
+  diaPdfState.page=1;
+  diaPdfState.total=0;
+  diaPdfState.target=1;
+  diaPdfState.url='';
+  diaPdfState.token+=1;
+}
+
+function setDiaPdfStatus(msg){
+  const el=document.getElementById('diaq-pdf-status');
+  if(el) el.textContent=msg||'';
+}
+
+function refreshDiaPdfPager(){
+  const el=document.getElementById('diaq-pdf-page');
+  const prev=document.getElementById('diaq-pdf-prev');
+  const next=document.getElementById('diaq-pdf-next');
+  if(el) el.textContent=`Página ${diaPdfState.page}/${diaPdfState.total||'—'}`;
+  if(prev) prev.disabled=!(diaPdfState.doc && diaPdfState.page>1);
+  if(next) next.disabled=!(diaPdfState.doc && diaPdfState.page<diaPdfState.total);
+}
+
+async function renderDiaPdfPage(pageNum){
+  if(!diaPdfState.doc) return;
+  const token=diaPdfState.token;
+  const page=Math.max(1,Math.min(diaPdfState.total||1,Number(pageNum)||1));
+  diaPdfState.page=page;
+  refreshDiaPdfPager();
+  setDiaPdfStatus('Renderizando página...');
+  const canvas=document.getElementById('diaq-pdf-canvas');
+  const wrap=document.getElementById('diaq-pdf-canvas-wrap');
+  if(!canvas || !wrap) return;
+  const ctx=canvas.getContext('2d');
+  if(!ctx) return;
+
+  let pdfPage;
+  try{
+    pdfPage=await diaPdfState.doc.getPage(page);
+  }catch(_){
+    setDiaPdfStatus('No se pudo abrir la página');
+    return;
+  }
+  if(token!==diaPdfState.token) return;
+
+  const base=pdfPage.getViewport({scale:1});
+  const maxW=Math.max(320,(wrap.clientWidth||860)-16);
+  const scale=Math.max(0.7,Math.min(2.4,maxW/base.width));
+  const viewport=pdfPage.getViewport({scale});
+  const dpr=Math.max(1,window.devicePixelRatio||1);
+  canvas.width=Math.floor(viewport.width*dpr);
+  canvas.height=Math.floor(viewport.height*dpr);
+  canvas.style.width=`${Math.floor(viewport.width)}px`;
+  canvas.style.height=`${Math.floor(viewport.height)}px`;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,viewport.width,viewport.height);
+
+  try{
+    diaPdfState.renderTask=pdfPage.render({canvasContext:ctx,viewport});
+    await diaPdfState.renderTask.promise;
+    if(token!==diaPdfState.token) return;
+    setDiaPdfStatus('Vista renderizada');
+  }catch(_){
+    if(token!==diaPdfState.token) return;
+    setDiaPdfStatus('No se pudo renderizar el PDF');
+  }
+}
+
+async function initDiaPdfPreview(pdfUrl,targetPage){
+  if(typeof window.pdfjsLib==='undefined') return false;
+  const fallback=document.getElementById('diaq-pdf-fallback');
+  const viewer=document.getElementById('diaq-pdf-viewer');
+  if(!viewer) return false;
+  if(fallback) fallback.style.display='none';
+
+  cleanupDiaPdf();
+  diaPdfState.url=pdfUrl;
+  diaPdfState.target=Math.max(1,Number(targetPage)||1);
+  setDiaPdfStatus('Cargando PDF...');
+
+  try{
+    if(window.pdfjsLib.GlobalWorkerOptions){
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+    diaPdfState.loadingTask=window.pdfjsLib.getDocument({url:pdfUrl});
+    diaPdfState.doc=await diaPdfState.loadingTask.promise;
+    diaPdfState.total=diaPdfState.doc.numPages||1;
+    diaPdfState.page=Math.max(1,Math.min(diaPdfState.total,diaPdfState.target));
+    refreshDiaPdfPager();
+    const prev=document.getElementById('diaq-pdf-prev');
+    const next=document.getElementById('diaq-pdf-next');
+    if(prev) prev.onclick=()=>{ if(diaPdfState.page>1) renderDiaPdfPage(diaPdfState.page-1); };
+    if(next) next.onclick=()=>{ if(diaPdfState.page<diaPdfState.total) renderDiaPdfPage(diaPdfState.page+1); };
+    await renderDiaPdfPage(diaPdfState.page);
+    return true;
+  }catch(_){
+    if(fallback) fallback.style.display='block';
+    setDiaPdfStatus('Vista previa no disponible en este navegador');
+    return false;
+  }
+}
+
 function openDiaQuestionModal(qid){
   const row=diaFindQuestionById(qid);
   if(!row){
@@ -1432,6 +1550,7 @@ function openDiaQuestionModal(qid){
   const noResp=parsePctText(row.no_responde);
   const prompt=row.texto_pregunta?diaEsc(row.texto_pregunta):'Sin enunciado disponible.';
   const pdfUrl=diaResolvePdfUrl(row);
+  const pageNum=Math.max(1,Number(row.pagina_prueba)||1);
 
   bodyEl.innerHTML=`
     <div class="diaq-grid">
@@ -1453,12 +1572,28 @@ function openDiaQuestionModal(qid){
         <div class="diaq-label">PDF de la prueba</div>
         ${pdfUrl?`<a class="diaq-pdf-link" href="${pdfUrl}" target="_blank" rel="noopener">Abrir PDF en nueva pestaña</a>`:''}
       </div>
-      ${pdfUrl?`<iframe class="diaq-pdf-frame" title="PDF pregunta DIA" src="${pdfUrl}"></iframe>`:'<div class="diaq-pdf-empty">No hay PDF asociado para esta pregunta.</div>'}
+      ${pdfUrl?`
+      <div class="diaq-pdf-viewer" id="diaq-pdf-viewer">
+        <div class="diaq-pdf-toolbar">
+          <button id="diaq-pdf-prev" class="diaq-pdf-btn" type="button" disabled>◀</button>
+          <span id="diaq-pdf-page" class="diaq-pdf-page">Página —/—</span>
+          <button id="diaq-pdf-next" class="diaq-pdf-btn" type="button" disabled>▶</button>
+          <span id="diaq-pdf-status" class="diaq-pdf-status">Cargando PDF…</span>
+        </div>
+        <div id="diaq-pdf-canvas-wrap" class="diaq-pdf-canvas-wrap"><canvas id="diaq-pdf-canvas" class="diaq-pdf-canvas"></canvas></div>
+      </div>
+      <div id="diaq-pdf-fallback" class="diaq-pdf-empty" style="display:none">
+        No se pudo previsualizar aquí. Usa “Abrir PDF en nueva pestaña”.
+      </div>
+      `:'<div class="diaq-pdf-empty">No hay PDF asociado para esta pregunta.</div>'}
     </div>
   `;
 
   overlay.classList.add('open');
   document.body.style.overflow='hidden';
+  if(pdfUrl){
+    initDiaPdfPreview(pdfUrl,pageNum);
+  }
 }
 
 function closeDiaQuestionModal(e){
@@ -1466,6 +1601,7 @@ function closeDiaQuestionModal(e){
   if(!overlay) return;
   if(!e || e.target===overlay){
     overlay.classList.remove('open');
+    cleanupDiaPdf();
     if(!document.getElementById('bc-overlay')?.classList.contains('open')){
       document.body.style.overflow='';
     }
