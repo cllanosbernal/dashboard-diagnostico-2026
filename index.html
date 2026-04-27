@@ -1078,6 +1078,7 @@ function nivelCodeFromText(v){
 }
 
 function normalizeTxt(v){ return (v||'').toString().trim().replace(/\s+/g,' '); }
+function isDiaMath(asig){ return (asig||'').toString().toLowerCase().includes('mat'); }
 function diaEsc(v){ return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function diaEnc(v){ return encodeURIComponent(v??''); }
 function diaDec(v){ try{return decodeURIComponent(v||'');}catch(_){return v||'';} }
@@ -1117,6 +1118,7 @@ function openBCGeneric(tag,title,subtitle,descripcion,extraHtml=''){
 }
 
 function openDiaBridgeOA({oaRaw, nivel, pct, curso, indicador, asignatura}){
+  if(!isDiaMath(asignatura)) return;
   const oaCodes=parseOACodes(oaRaw);
   if(!oaCodes.length) return;
   const p=(pct==null||Number.isNaN(pct))?50:pct;
@@ -1421,6 +1423,10 @@ function diaResolvePdfUrl(row){
 }
 
 const diaPdfState={doc:null,loadingTask:null,renderTask:null,page:1,total:0,target:1,url:'',token:0};
+const DIA_PDF_WORKERS=[
+  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js',
+  'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js'
+];
 
 function cleanupDiaPdf(){
   try{ if(diaPdfState.renderTask?.cancel) diaPdfState.renderTask.cancel(); }catch(_){}
@@ -1438,6 +1444,30 @@ function cleanupDiaPdf(){
 function setDiaPdfStatus(msg){
   const el=document.getElementById('diaq-pdf-status');
   if(el) el.textContent=msg||'';
+}
+
+function diaPdfUrlWithPage(pdfUrl,pageNum){
+  const base=(pdfUrl||'').toString().split('#')[0];
+  const page=Math.max(1,Number(pageNum)||1);
+  return `${base}#page=${page}`;
+}
+
+function renderDiaPdfCompatible(pdfUrl,targetPage){
+  const viewer=document.getElementById('diaq-pdf-viewer');
+  const wrap=document.getElementById('diaq-pdf-canvas-wrap');
+  const toolbar=document.querySelector('#diaq-pdf-viewer .diaq-pdf-toolbar');
+  if(!viewer || !wrap) return false;
+  if(toolbar) toolbar.style.display='none';
+  wrap.style.maxHeight='none';
+  wrap.style.padding='0';
+  wrap.innerHTML='';
+  const frame=document.createElement('iframe');
+  frame.className='diaq-pdf-frame';
+  frame.loading='lazy';
+  frame.setAttribute('title','Vista previa PDF (modo compatible)');
+  frame.src=diaPdfUrlWithPage(pdfUrl,targetPage);
+  wrap.appendChild(frame);
+  return true;
 }
 
 function refreshDiaPdfPager(){
@@ -1495,7 +1525,9 @@ async function renderDiaPdfPage(pageNum){
 }
 
 async function initDiaPdfPreview(pdfUrl,targetPage){
-  if(typeof window.pdfjsLib==='undefined') return false;
+  if(typeof window.pdfjsLib==='undefined'){
+    return renderDiaPdfCompatible(pdfUrl,targetPage);
+  }
   const fallback=document.getElementById('diaq-pdf-fallback');
   const viewer=document.getElementById('diaq-pdf-viewer');
   if(!viewer) return false;
@@ -1507,11 +1539,25 @@ async function initDiaPdfPreview(pdfUrl,targetPage){
   setDiaPdfStatus('Cargando PDF...');
 
   try{
-    if(window.pdfjsLib.GlobalWorkerOptions){
-      window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    let docLoaded=false;
+    let lastErr=null;
+    for(const workerSrc of DIA_PDF_WORKERS){
+      try{
+        if(window.pdfjsLib.GlobalWorkerOptions){
+          window.pdfjsLib.GlobalWorkerOptions.workerSrc=workerSrc;
+        }
+        diaPdfState.loadingTask=window.pdfjsLib.getDocument({url:pdfUrl});
+        diaPdfState.doc=await diaPdfState.loadingTask.promise;
+        docLoaded=true;
+        break;
+      }catch(err){
+        lastErr=err;
+        try{ if(diaPdfState.loadingTask?.destroy) diaPdfState.loadingTask.destroy(); }catch(_){}
+        diaPdfState.loadingTask=null;
+        diaPdfState.doc=null;
+      }
     }
-    diaPdfState.loadingTask=window.pdfjsLib.getDocument({url:pdfUrl});
-    diaPdfState.doc=await diaPdfState.loadingTask.promise;
+    if(!docLoaded) throw lastErr || new Error('No se pudo cargar PDF.js worker');
     diaPdfState.total=diaPdfState.doc.numPages||1;
     diaPdfState.page=Math.max(1,Math.min(diaPdfState.total,diaPdfState.target));
     refreshDiaPdfPager();
@@ -1522,6 +1568,12 @@ async function initDiaPdfPreview(pdfUrl,targetPage){
     await renderDiaPdfPage(diaPdfState.page);
     return true;
   }catch(_){
+    const ok=renderDiaPdfCompatible(pdfUrl,targetPage);
+    if(ok){
+      setDiaPdfStatus('');
+      if(fallback) fallback.style.display='none';
+      return true;
+    }
     if(fallback) fallback.style.display='block';
     setDiaPdfStatus('Vista previa no disponible en este navegador');
     return false;
@@ -1542,13 +1594,13 @@ function openDiaQuestionModal(qid){
 
   const qNum=row.pregunta!=null?row.pregunta:'—';
   titleEl.textContent=`${row.asignatura||'—'} · ${row.curso||'—'} · Pregunta ${qNum}`;
-  subEl.textContent=`${row.nivel||'—'} · OA ${row.oa||'—'} · ${row.alerta||'—'}`;
+  const oaSub=isDiaMath(row.asignatura)?` · OA ${row.oa||'—'}`:'';
+  subEl.textContent=`${row.nivel||'—'}${oaSub} · ${row.alerta||'—'}`;
 
   const logro=parsePctText(row.logro);
   const dist=diaResponseSummary(row);
   const distractor=row.distractor?`${row.distractor} (${parsePctText(row.pct_distractor)??'—'}%)`:'—';
   const noResp=parsePctText(row.no_responde);
-  const prompt=row.texto_pregunta?diaEsc(row.texto_pregunta):'Sin enunciado disponible.';
   const pdfUrl=diaResolvePdfUrl(row);
   const pageNum=Math.max(1,Number(row.pagina_prueba)||1);
 
@@ -1562,10 +1614,6 @@ function openDiaQuestionModal(qid){
     <div class="diaq-section">
       <div class="diaq-label">Distribución respuestas</div>
       <div class="diaq-prompt">${diaEsc(dist)}</div>
-    </div>
-    <div class="diaq-section">
-      <div class="diaq-label">Enunciado</div>
-      <div class="diaq-prompt">${prompt}</div>
     </div>
     <div class="diaq-section">
       <div class="diaq-pdf-actions">
@@ -1614,10 +1662,12 @@ function diaQuestionTable(rows){
   ${rows.map(r=>{
     const oaRaw=r.oa||'';
     const ind=normalizeTxt(r.indicador||r.habilidad||r.eje||'');
+    const isMatRow=isDiaMath(r.asignatura);
     const al=normalizeTxt(r.alerta||'—');
     const alColor=al==='Critica'?'#ef4444':al==='Media'?'#f59e0b':'#10b981';
     const alBg=al==='Critica'?'rgba(239,68,68,.15)':al==='Media'?'rgba(245,158,11,.15)':'rgba(16,185,129,.15)';
     const oaLink=`<a href="#" class="diaopt-link dia-oa-link" data-oa="${diaEnc(oaRaw)}" data-nivel="${diaEnc(r.nivel||'')}" data-logro="${diaEsc(r.logro)}" data-curso="${diaEnc(r.curso||'')}" data-ind="${diaEnc(ind)}" data-asig="${diaEnc(r.asignatura||'')}">${diaEsc(oaRaw||'—')}</a>`;
+    const oaCell=(isMatRow && oaRaw)?oaLink:diaEsc(oaRaw||'—');
     const habLink=`<a href="#" class="diaopt-link dia-hab-link" data-hab="${diaEnc(ind)}" data-logro="${diaEsc(r.logro)}" data-curso="${diaEnc(r.curso||'')}" data-ind="${diaEnc(ind)}" data-asig="${diaEnc(r.asignatura||'')}">${diaEsc(ind||'—')}</a>`;
     const qid=String(r.id||'').trim();
     const qLink=qid
@@ -1628,7 +1678,7 @@ function diaQuestionTable(rows){
       <td>${diaEsc(r.nivel||'—')}</td>
       <td class="rank-curso">${diaEsc(r.curso||'—')}</td>
       <td>${qLink}</td>
-      <td>${oaLink}</td>
+      <td>${oaCell}</td>
       <td>${habLink}</td>
       <td style="color:${cPromSafe(parsePctText(r.logro))}">${r.logro!=null?`${parsePctText(r.logro)}%`:'—'}</td>
       <td>${diaEsc(r.correcta||'—')}</td>
@@ -1651,8 +1701,9 @@ function diaOATable(rows){
   ${rows.map(r=>{
     const ind=normalizeTxt(r.indicador||'');
     const oaLink=`<a href="#" class="diaopt-link dia-oa-link" data-oa="${diaEnc(r.oa||'')}" data-nivel="${diaEnc(r.nivelRef||'')}" data-logro="${diaEsc(r.logro)}" data-curso="${diaEnc('Consolidado OA')}" data-ind="${diaEnc(ind)}" data-asig="${diaEnc(r.asignatura||'')}">${diaEsc(r.oa||'—')}</a>`;
+    const oaCell=(isDiaMath(r.asignatura) && r.oa)?oaLink:diaEsc(r.oa||'—');
     const indLink=`<a href="#" class="diaopt-link dia-hab-link" data-hab="${diaEnc(ind)}" data-logro="${diaEsc(r.logro)}" data-curso="${diaEnc('Consolidado OA')}" data-ind="${diaEnc(ind)}" data-asig="${diaEnc(r.asignatura||'')}">${diaEsc(ind||'—')}</a>`;
-    return `<tr><td>${diaEsc(r.asignatura||'—')}</td><td>${oaLink}</td><td>${diaEsc(r.cursos||0)}</td><td>${diaEsc(r.preguntas||0)}</td><td style="color:${cPromSafe(r.logro)}">${r.logro!=null?`${r.logro}%`:'—'}</td><td>${indLink}</td></tr>`;
+    return `<tr><td>${diaEsc(r.asignatura||'—')}</td><td>${oaCell}</td><td>${diaEsc(r.cursos||0)}</td><td>${diaEsc(r.preguntas||0)}</td><td style="color:${cPromSafe(r.logro)}">${r.logro!=null?`${r.logro}%`:'—'}</td><td>${indLink}</td></tr>`;
   }).join('')}
   </tbody></table>`;
 }
