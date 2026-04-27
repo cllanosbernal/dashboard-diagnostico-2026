@@ -183,6 +183,24 @@ canvas{display:block;width:100%!important;max-width:100%;height:auto!important;m
 .diaopt-link{color:var(--accent);text-decoration:none;border-bottom:1px dotted rgba(56,189,248,.6);cursor:pointer}
 .diaopt-link:hover{color:#7dd3fc;border-bottom-color:#7dd3fc}
 .diaopt-empty{font-size:12px;color:var(--muted);padding:10px 0}
+.diaq-overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:1050;display:none;align-items:center;justify-content:center;padding:18px}
+.diaq-overlay.open{display:flex}
+.diaq-panel{background:#0f172a;border:1px solid #1e2d45;border-radius:14px;width:min(980px,96vw);max-height:92vh;overflow:auto;padding:18px 18px 14px;position:relative}
+.diaq-close{position:absolute;top:12px;right:12px;background:var(--surface2);border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:6px 10px;cursor:pointer;font-family:'Sora',sans-serif;font-size:12px;font-weight:700}
+.diaq-close:hover{color:var(--text);border-color:var(--accent)}
+.diaq-title{font-size:18px;font-weight:800;line-height:1.2;padding-right:120px}
+.diaq-sub{font-size:12px;color:var(--muted);margin-top:6px}
+.diaq-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:14px 0}
+.diaq-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px}
+.diaq-box .k{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px}
+.diaq-box .v{font-size:12px;color:var(--text);font-family:'JetBrains Mono',monospace;font-weight:700}
+.diaq-section{margin-top:12px}
+.diaq-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.diaq-prompt{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:11px;white-space:pre-wrap;line-height:1.55;font-size:13px}
+.diaq-pdf-actions{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin:10px 0 8px}
+.diaq-pdf-link{display:inline-block;padding:7px 10px;border-radius:7px;border:1px solid var(--border);background:rgba(56,189,248,.14);color:var(--accent);text-decoration:none;font-size:12px;font-weight:700}
+.diaq-pdf-frame{width:100%;height:62vh;border:1px solid var(--border);border-radius:8px;background:#0b1220}
+.diaq-pdf-empty{font-size:12px;color:var(--muted);padding:12px;border:1px dashed var(--border);border-radius:8px}
 
 /* ── PANEL CURRICULAR ── */
 .bc-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px}
@@ -254,6 +272,9 @@ canvas{display:block;width:100%!important;max-width:100%;height:auto!important;m
   .simce-mini-row{grid-template-columns:72px 1fr 44px}
   .simce-card-tools{width:100%;justify-content:flex-end}
   .diaopt-input{min-width:100%}
+  .diaq-grid{grid-template-columns:1fr 1fr}
+  .diaq-title{font-size:16px;padding-right:90px}
+  .diaq-pdf-frame{height:56vh}
 }
 </style>
 </head>
@@ -531,6 +552,15 @@ canvas{display:block;width:100%!important;max-width:100%;height:auto!important;m
     <div class="bc-title" id="bc-title"></div>
     <div class="bc-subtitle" id="bc-subtitle"></div>
     <div id="bc-body"></div>
+  </div>
+</div>
+
+<div class="diaq-overlay" id="diaq-overlay" onclick="closeDiaQuestionModal(event)">
+  <div class="diaq-panel">
+    <button class="diaq-close" onclick="closeDiaQuestionModal()">✕ Cerrar</button>
+    <div class="diaq-title" id="diaq-title">Detalle pregunta DIA</div>
+    <div class="diaq-sub" id="diaq-sub"></div>
+    <div id="diaq-body"></div>
   </div>
 </div>
 
@@ -1335,6 +1365,90 @@ function diaRenderToolbar(rows, canNivel=true, canAlerta=true){
   `;
 }
 
+function diaFindQuestionById(qid){
+  if(!qid || !diaOptData) return null;
+  const pid=String(qid);
+  const lists=[diaOptData.preguntas||[], diaOptData.distractores||[]];
+  for(const list of lists){
+    const hit=list.find(r=>String(r.id||'')===pid);
+    if(hit) return hit;
+  }
+  return null;
+}
+
+function diaResponseSummary(row){
+  const res=row?.respuestas;
+  if(!res || typeof res!=='object') return '—';
+  const keys=Object.keys(res);
+  if(!keys.length) return '—';
+  return keys.map(k=>{
+    const v=parsePctText(res[k]);
+    return `${k}: ${v==null?'—':`${v}%`}`;
+  }).join(' · ');
+}
+
+function openDiaQuestionModal(qid){
+  const row=diaFindQuestionById(qid);
+  if(!row){
+    setToolsMsg('No se encontró el detalle de la pregunta DIA', '#f59e0b');
+    return;
+  }
+  const overlay=document.getElementById('diaq-overlay');
+  const titleEl=document.getElementById('diaq-title');
+  const subEl=document.getElementById('diaq-sub');
+  const bodyEl=document.getElementById('diaq-body');
+  if(!overlay || !titleEl || !subEl || !bodyEl) return;
+
+  const qNum=row.pregunta!=null?row.pregunta:'—';
+  titleEl.textContent=`${row.asignatura||'—'} · ${row.curso||'—'} · Pregunta ${qNum}`;
+  subEl.textContent=`${row.nivel||'—'} · OA ${row.oa||'—'} · ${row.alerta||'—'}`;
+
+  const logro=parsePctText(row.logro);
+  const dist=diaResponseSummary(row);
+  const distractor=row.distractor?`${row.distractor} (${parsePctText(row.pct_distractor)??'—'}%)`:'—';
+  const noResp=parsePctText(row.no_responde);
+  const prompt=row.texto_pregunta?diaEsc(row.texto_pregunta):'Sin enunciado disponible.';
+  const pdfUrl=row.pdf_prueba_url?encodeURI(row.pdf_prueba_url):'';
+
+  bodyEl.innerHTML=`
+    <div class="diaq-grid">
+      <div class="diaq-box"><div class="k">Logro</div><div class="v">${logro==null?'—':`${logro}%`}</div></div>
+      <div class="diaq-box"><div class="k">Correcta</div><div class="v">${diaEsc(row.correcta||'—')}</div></div>
+      <div class="diaq-box"><div class="k">Distractor</div><div class="v">${diaEsc(distractor)}</div></div>
+      <div class="diaq-box"><div class="k">No responde</div><div class="v">${noResp==null?'—':`${noResp}%`}</div></div>
+    </div>
+    <div class="diaq-section">
+      <div class="diaq-label">Distribución respuestas</div>
+      <div class="diaq-prompt">${diaEsc(dist)}</div>
+    </div>
+    <div class="diaq-section">
+      <div class="diaq-label">Enunciado</div>
+      <div class="diaq-prompt">${prompt}</div>
+    </div>
+    <div class="diaq-section">
+      <div class="diaq-pdf-actions">
+        <div class="diaq-label">PDF de la prueba</div>
+        ${pdfUrl?`<a class="diaq-pdf-link" href="${pdfUrl}" target="_blank" rel="noopener">Abrir PDF en nueva pestaña</a>`:''}
+      </div>
+      ${pdfUrl?`<iframe class="diaq-pdf-frame" title="PDF pregunta DIA" src="${pdfUrl}"></iframe>`:'<div class="diaq-pdf-empty">No hay PDF asociado para esta pregunta.</div>'}
+    </div>
+  `;
+
+  overlay.classList.add('open');
+  document.body.style.overflow='hidden';
+}
+
+function closeDiaQuestionModal(e){
+  const overlay=document.getElementById('diaq-overlay');
+  if(!overlay) return;
+  if(!e || e.target===overlay){
+    overlay.classList.remove('open');
+    if(!document.getElementById('bc-overlay')?.classList.contains('open')){
+      document.body.style.overflow='';
+    }
+  }
+}
+
 function diaQuestionTable(rows){
   if(!rows.length) return '<div class="diaopt-empty">No hay registros con los filtros actuales.</div>';
   return `<table class="ranking-table"><thead><tr><th>Asignatura</th><th>Nivel</th><th>Curso</th><th>P</th><th>OA</th><th>Foco / Indicador</th><th>Logro</th><th>Correcta</th><th>Distractor</th><th>Alerta</th></tr></thead><tbody>
@@ -1346,11 +1460,15 @@ function diaQuestionTable(rows){
     const alBg=al==='Critica'?'rgba(239,68,68,.15)':al==='Media'?'rgba(245,158,11,.15)':'rgba(16,185,129,.15)';
     const oaLink=`<a href="#" class="diaopt-link dia-oa-link" data-oa="${diaEnc(oaRaw)}" data-nivel="${diaEnc(r.nivel||'')}" data-logro="${diaEsc(r.logro)}" data-curso="${diaEnc(r.curso||'')}" data-ind="${diaEnc(ind)}" data-asig="${diaEnc(r.asignatura||'')}">${diaEsc(oaRaw||'—')}</a>`;
     const habLink=`<a href="#" class="diaopt-link dia-hab-link" data-hab="${diaEnc(ind)}" data-logro="${diaEsc(r.logro)}" data-curso="${diaEnc(r.curso||'')}" data-ind="${diaEnc(ind)}" data-asig="${diaEnc(r.asignatura||'')}">${diaEsc(ind||'—')}</a>`;
+    const qid=String(r.id||'').trim();
+    const qLink=qid
+      ? `<a href="#" class="diaopt-link dia-q-link" data-qid="${diaEnc(qid)}" title="Abrir detalle de la pregunta">${diaEsc(r.pregunta||'—')}</a>`
+      : `<span class="rank-num">${diaEsc(r.pregunta||'—')}</span>`;
     return `<tr>
       <td>${diaEsc(r.asignatura||'—')}</td>
       <td>${diaEsc(r.nivel||'—')}</td>
       <td class="rank-curso">${diaEsc(r.curso||'—')}</td>
-      <td><span class="rank-num">${diaEsc(r.pregunta||'—')}</span></td>
+      <td>${qLink}</td>
       <td>${oaLink}</td>
       <td>${habLink}</td>
       <td style="color:${cPromSafe(parsePctText(r.logro))}">${r.logro!=null?`${parsePctText(r.logro)}%`:'—'}</td>
@@ -1381,6 +1499,12 @@ function diaOATable(rows){
 }
 
 function bindDiaOptLinks(root){
+  root.querySelectorAll('.dia-q-link').forEach(a=>{
+    a.addEventListener('click',e=>{
+      e.preventDefault();
+      openDiaQuestionModal(diaDec(a.dataset.qid));
+    });
+  });
   root.querySelectorAll('.dia-oa-link').forEach(a=>{
     a.addEventListener('click',e=>{
       e.preventDefault();
@@ -1908,9 +2032,19 @@ function openOA(oa, nivel, pct, cursoLabel){
 }
 
 function closeBCPanel(e){
-  if(!e||e.target===document.getElementById('bc-overlay')) document.getElementById('bc-overlay').classList.remove('open');
+  const overlay=document.getElementById('bc-overlay');
+  if(!e||e.target===overlay){
+    overlay.classList.remove('open');
+    if(!document.getElementById('diaq-overlay')?.classList.contains('open')){
+      document.body.style.overflow='';
+    }
+  }
 }
-document.addEventListener('keydown',e=>{if(e.key==='Escape')document.getElementById('bc-overlay').classList.remove('open');});
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Escape') return;
+  closeDiaQuestionModal();
+  closeBCPanel();
+});
 
 
 const EJES_MAT = {"2": {"Números y operaciones": ["OA1", "OA2", "OA3", "OA4", "OA5", "OA6", "OA7", "OA8", "OA9", "OA10", "OA11"], "Patrones y álgebra": ["OA12", "OA13"], "Geometría": ["OA14", "OA15", "OA16"], "Medición": ["OA17", "OA18", "OA19"], "Datos y probabilidades": ["OA20", "OA21", "OA22"]}, "3": {"Números y operaciones": ["OA1", "OA2", "OA3", "OA4", "OA5", "OA6", "OA7", "OA8", "OA9", "OA10", "OA11"], "Patrones y álgebra": ["OA12", "OA13"], "Geometría": ["OA14", "OA15", "OA16", "OA17", "OA18"], "Medición": ["OA19", "OA20", "OA21", "OA22"], "Datos y probabilidades": ["OA23", "OA24", "OA25", "OA26"]}, "4": {"Números y operaciones": ["OA1", "OA2", "OA3", "OA4", "OA5", "OA6", "OA7", "OA8", "OA9", "OA10", "OA11", "OA12"], "Patrones y álgebra": ["OA13", "OA14"], "Geometría": ["OA15", "OA16", "OA17", "OA18", "OA19"], "Medición": ["OA20", "OA21", "OA22", "OA23", "OA24"], "Datos y probabilidades": ["OA25", "OA26", "OA27"]}, "5": {"Números y operaciones": ["OA1", "OA2", "OA3", "OA4", "OA5", "OA6", "OA7", "OA8", "OA9", "OA10", "OA11", "OA12", "OA13"], "Patrones y álgebra": ["OA14", "OA15"], "Geometría": ["OA16", "OA17", "OA18"], "Medición": ["OA19", "OA20", "OA21", "OA22"], "Datos y probabilidades": ["OA23", "OA24", "OA25", "OA26", "OA27"]}, "6": {"Números y operaciones": ["OA1", "OA2", "OA3", "OA4", "OA5", "OA6", "OA7", "OA8"], "Patrones y álgebra": ["OA9", "OA10", "OA11"], "Geometría": ["OA12", "OA13", "OA14", "OA15", "OA16", "OA17"], "Medición": ["OA18", "OA19", "OA20", "OA21"], "Datos y probabilidades": ["OA22", "OA23", "OA24"]}, "7": {"Números": ["OA1", "OA2", "OA3", "OA4", "OA5"], "Álgebra y funciones": ["OA6", "OA7", "OA8", "OA9"], "Geometría": ["OA10", "OA11", "OA12", "OA13", "OA14"], "Probabilidad y estadística": ["OA15", "OA16", "OA17", "OA18", "OA19"]}, "8": {"Números": ["OA1", "OA2", "OA3", "OA4", "OA5"], "Álgebra y funciones": ["OA6", "OA7", "OA8", "OA9", "OA10"], "Geometría": ["OA11", "OA12", "OA13", "OA14"], "Probabilidad y estadística": ["OA15", "OA16", "OA17"]}, "I": {"Números": ["OA1", "OA2"], "Álgebra y funciones": ["OA3", "OA4", "OA5"], "Geometría": ["OA6", "OA7", "OA8", "OA9", "OA10", "OA11"], "Probabilidad y estadística": ["OA12", "OA13", "OA14", "OA15"]}, "II": {"Números": ["OA1", "OA2"], "Álgebra y funciones": ["OA3", "OA4", "OA5", "OA6"], "Geometría": ["OA7", "OA8", "OA9"], "Probabilidad y estadística": ["OA10", "OA11", "OA12"]}};
