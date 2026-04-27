@@ -74,7 +74,7 @@ body{background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;min-he
 .badge-lectura{background:var(--lectura-dim);color:var(--lectura)}
 .badge-mat{background:var(--mat-dim);color:var(--mat)}
 .badge-ambas{background:rgba(56,189,248,.1);color:var(--accent)}
-canvas{display:block;width:100%!important;max-width:100%;height:auto!important;max-height:260px}
+main canvas{display:block;width:100%!important;max-width:100%;height:auto!important;max-height:260px}
 .ranking-table{width:100%;border-collapse:collapse;font-size:13px}
 .ranking-table th{padding:7px 10px;text-align:left;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid var(--border);font-weight:600}
 .ranking-table td{padding:8px 10px;border-bottom:1px solid rgba(30,45,69,.5)}
@@ -209,7 +209,14 @@ canvas{display:block;width:100%!important;max-width:100%;height:auto!important;m
 .diaq-pdf-page{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text);min-width:92px}
 .diaq-pdf-status{font-size:11px;color:var(--muted)}
 .diaq-pdf-canvas-wrap{max-height:65vh;overflow:auto;padding:8px;display:flex;justify-content:center}
-.diaq-pdf-canvas{display:block;background:#fff;border-radius:4px;max-width:100%}
+.diaq-pdf-canvas{
+  display:block;
+  background:#fff;
+  border-radius:4px;
+  max-width:100%;
+  height:auto;
+  image-rendering:auto;
+}
 
 /* ── PANEL CURRICULAR ── */
 .bc-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px}
