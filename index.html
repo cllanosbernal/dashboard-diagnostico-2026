@@ -172,6 +172,7 @@ canvas{display:block;width:100%!important;max-width:100%;height:auto!important;m
 .cmp-alert{background:rgba(239,68,68,.16);color:#ef4444}
 .cmp-critical{background:rgba(245,158,11,.18);color:#f59e0b}
 .cmp-gap{background:rgba(56,189,248,.18);color:var(--accent)}
+.diaopt-embed{width:100%;height:82vh;min-height:760px;border:1px solid var(--border);border-radius:10px;background:#fff}
 
 /* ── PANEL CURRICULAR ── */
 .bc-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px}
@@ -221,6 +222,7 @@ canvas{display:block;width:100%!important;max-width:100%;height:auto!important;m
   .simce-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .simce-detail-grid{grid-template-columns:1fr}
   .cmp-kpi-grid,.cmp-insights{grid-template-columns:1fr}
+  .diaopt-embed{min-height:620px;height:76vh}
   .eje-level-cards{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
   .card{padding:14px}
 }
@@ -242,6 +244,7 @@ canvas{display:block;width:100%!important;max-width:100%;height:auto!important;m
   .brecha-row .brecha-bar-wrap:nth-child(3),.brecha-row .brecha-diff{grid-column:1 / -1}
   .simce-mini-row{grid-template-columns:72px 1fr 44px}
   .simce-card-tools{width:100%;justify-content:flex-end}
+  .diaopt-embed{min-height:540px;height:72vh}
 }
 </style>
 </head>
@@ -270,6 +273,7 @@ canvas{display:block;width:100%!important;max-width:100%;height:auto!important;m
   <button class="tab" onclick="showPage('prioridades')"><span class="tab-ico">🎯</span><span class="tab-txt">Prioridades</span></button>
   <button class="tab" onclick="showPage('simce')"><span class="tab-ico">🧪</span><span class="tab-txt">SIMCE 2026</span></button>
   <button class="tab" onclick="showPage('comparativo')"><span class="tab-ico">📉</span><span class="tab-txt">Comparativo 25–26</span></button>
+  <button class="tab" onclick="showPage('diaopt')"><span class="tab-ico">🧩</span><span class="tab-txt">DIA Optimizado</span></button>
   <button class="tab" onclick="showPage('detalle')"><span class="tab-ico">🔍</span><span class="tab-txt">Detalle por Curso</span></button>
 </div>
 
@@ -341,6 +345,20 @@ canvas{display:block;width:100%!important;max-width:100%;height:auto!important;m
   <div class="card">
     <div class="card-header"><span class="card-title">Comparativo por curso (2025–2026)</span><span class="card-badge badge-ambas">Detalle por curso</span></div>
     <div id="cmp-tabla"></div>
+  </div>
+</div>
+
+<!-- DIA OPTIMIZADO -->
+<div id="page-diaopt" class="page">
+  <div style="font-size:12px;color:var(--muted);margin-bottom:16px;background:var(--surface);border:1px solid var(--border);padding:10px 14px;border-radius:8px;display:flex;align-items:center;gap:8px">
+    <span>🧩</span> Integración del dashboard optimizado de preguntas, distractores y OA. Se carga dentro del tablero principal para navegación unificada.
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Dashboard DIA Optimizado Integrado</span>
+      <a class="filter-btn" href="dashboard_dia_optimizado.html" target="_blank" rel="noopener">Abrir en pestaña nueva</a>
+    </div>
+    <iframe id="diaopt-frame" class="diaopt-embed" src="dashboard_dia_optimizado.html" loading="lazy" title="Dashboard DIA optimizado"></iframe>
   </div>
 </div>
 
@@ -893,7 +911,7 @@ function showPage(p){
   currentPage=p;
   document.querySelectorAll('.page').forEach(e=>e.classList.remove('active'));
   document.getElementById('page-'+p).classList.add('active');
-  const pages=['resumen','ranking','brecha','habilidades','ejes','prioridades','simce','comparativo','detalle'];
+  const pages=['resumen','ranking','brecha','habilidades','ejes','prioridades','simce','comparativo','diaopt','detalle'];
   document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',pages[i]===p));
   renderPage(p);
   requestAnimationFrame(()=>resizeAllCharts());
@@ -960,6 +978,7 @@ function updateHeader(){
 // ══════════════════════════════════════════
 function renderPage(p){
   if(p==='resumen') renderResumen();
+  else if(p==='diaopt') renderDiaOpt();
   else if(p==='comparativo') renderComparativo();
   else if(p==='ranking') renderRanking();
   else if(p==='brecha') renderBrecha();
@@ -968,6 +987,186 @@ function renderPage(p){
   else if(p==='detalle') renderDetalle();
   else if(p==='prioridades') renderPrioridades();
   else if(p==='simce') renderSimce();
+}
+
+function renderDiaOpt(){
+  const frame=document.getElementById('diaopt-frame');
+  if(!frame) return;
+  if(!frame.getAttribute('src')) frame.setAttribute('src','dashboard_dia_optimizado.html');
+  if(!frame.dataset.bridgeInit){
+    frame.addEventListener('load',()=>bindDiaOptBridge(frame));
+    frame.dataset.bridgeInit='1';
+  }
+  bindDiaOptBridge(frame);
+}
+
+function parsePctText(v){
+  if(v==null) return null;
+  const s=String(v).replace(',', '.');
+  const m=s.match(/-?\d+(\.\d+)?/);
+  if(!m) return null;
+  const n=parseFloat(m[0]);
+  return Number.isFinite(n) ? +n.toFixed(1) : null;
+}
+
+function parseOACode(v){
+  if(!v) return null;
+  const s=String(v).toUpperCase();
+  const m=s.match(/(?:OA)?\s*(\d{1,2})/);
+  return m ? `OA${m[1]}` : null;
+}
+
+function nivelCodeFromText(v){
+  const s=(v||'').toString().toUpperCase().replaceAll('Á','A').replaceAll('É','E').replaceAll('Í','I').replaceAll('Ó','O').replaceAll('Ú','U');
+  if(/\bII\b/.test(s) || /2°?\s*MEDIO/.test(s)) return 'II';
+  if(/\bI\b/.test(s) || /1°?\s*MEDIO/.test(s)) return 'I';
+  const m=s.match(/([2-8])°?\s*BAS/);
+  if(m) return m[1];
+  const m2=s.match(/\b([2-8])\b/);
+  return m2 ? m2[1] : null;
+}
+
+function normalizeTxt(v){
+  return (v||'').toString().trim().replace(/\s+/g,' ');
+}
+
+function inferLecturaEje(texto){
+  const t=(texto||'').toString().toLowerCase();
+  if(t.includes('localiz')) return 'Localizar';
+  if(t.includes('interpret') || t.includes('relacion')) return 'Interpretar y relacionar';
+  if(t.includes('reflex') || t.includes('evalu')) return 'Reflexionar';
+  return null;
+}
+
+function openBCGeneric(tag,title,subtitle,descripcion,extraHtml=''){
+  document.getElementById('bc-tag').innerHTML=`<span style="color:var(--accent)">${tag}</span>`;
+  document.getElementById('bc-title').textContent=title;
+  document.getElementById('bc-subtitle').textContent=subtitle;
+  document.getElementById('bc-body').innerHTML=`
+    <div class="bc-section">
+      <div class="bc-section-title">Descripción</div>
+      <div class="bc-desc">${descripcion||'Sin descripción disponible.'}</div>
+    </div>
+    ${extraHtml}
+  `;
+  document.getElementById('bc-overlay').classList.add('open');
+}
+
+function openDiaBridgeOA({oa, nivel, pct, curso, indicador}){
+  if(!oa) return;
+  const p=(pct==null||Number.isNaN(pct))?50:pct;
+  const n=nivel || '—';
+  const cursoLabel=curso || 'DIA Optimizado';
+  if(nivel && BC_OA[nivel]?.[oa]){
+    openOA(oa,nivel,p,cursoLabel);
+    return;
+  }
+  const matches=Object.entries(BC_OA).map(([niv,map])=>({niv,desc:map?.[oa]})).filter(x=>!!x.desc);
+  const listado=matches.length
+    ? `<ul class="bc-list">${matches.map(x=>`<li><strong>${x.niv}:</strong> ${x.desc}</li>`).join('')}</ul>`
+    : `<div class="bc-desc" style="color:var(--muted)">No se encontró descripción exacta para ${oa} en las Bases Curriculares cargadas.</div>`;
+  const extra=`
+    <div class="bc-section">
+      <div class="bc-section-title">Contexto DIA optimizado</div>
+      <div class="bc-desc">Curso: ${cursoLabel} · Nivel detectado: ${n} · Logro: ${p}%</div>
+    </div>
+    <div class="bc-section">
+      <div class="bc-section-title">Referencias BC detectadas</div>
+      ${listado}
+    </div>
+    ${indicador?`<div class="bc-section"><div class="bc-section-title">Indicador asociado</div><div class="bc-desc">${indicador}</div></div>`:''}
+  `;
+  openBCGeneric('OA Matemática (vinculación DIA)',oa,`Resultado en: ${cursoLabel} · ${p}%`,`Se abrió una vista consolidada porque no se pudo inferir un único nivel para ${oa}.`,extra);
+}
+
+function openDiaBridgeHabilidad({asignatura,habilidad,pct,curso,indicador}){
+  const p=(pct==null||Number.isNaN(pct))?50:pct;
+  const cursoLabel=curso || 'DIA Optimizado';
+  if((asignatura||'').toLowerCase().includes('lectura')){
+    const eje=inferLecturaEje(habilidad || indicador || '');
+    if(eje){
+      openEje(eje,p,cursoLabel);
+      return;
+    }
+  }
+  const desc=(asignatura||'').toLowerCase().includes('mat')
+    ? 'Esta habilidad/eje proviene del dashboard DIA optimizado y se vincula como foco pedagógico para profundizar el análisis por OA.'
+    : 'Esta habilidad proviene del dashboard DIA optimizado y puede complementar la lectura por ejes curriculares del panel principal.';
+  const extra=`
+    <div class="bc-section">
+      <div class="bc-section-title">Contexto DIA optimizado</div>
+      <div class="bc-desc">Asignatura: ${asignatura||'—'} · Curso: ${cursoLabel} · Logro: ${p}%</div>
+    </div>
+    ${indicador?`<div class="bc-section"><div class="bc-section-title">Indicador asociado</div><div class="bc-desc">${indicador}</div></div>`:''}
+  `;
+  openBCGeneric('Habilidad (vinculación DIA)',habilidad||'Habilidad','Vista vinculada al modal curricular clásico',desc,extra);
+}
+
+function bindDiaOptBridge(frame){
+  if(!frame) return;
+  let doc;
+  try{ doc=frame.contentDocument; }catch(_){ return; }
+  if(!doc || !doc.body) return;
+
+  if(!doc.getElementById('diaopt-bridge-style')){
+    const st=doc.createElement('style');
+    st.id='diaopt-bridge-style';
+    st.textContent='.oa-link,.hab-link{cursor:pointer;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:2px}.oa-link:hover,.hab-link:hover{background:#eef4ff;color:#1d4ed8}';
+    (doc.head||doc.body).appendChild(st);
+  }
+
+  const markCells=()=>{
+    doc.querySelectorAll('table').forEach(table=>{
+      const heads=[...table.querySelectorAll('thead th')].map(h=>normalizeTxt(h.textContent).toLowerCase());
+      if(!heads.length) return;
+      const idxOA=heads.findIndex(h=>h==='oa' || h.endsWith(' oa') || h.includes('oa'));
+      const idxHab=heads.findIndex(h=>h.includes('foco') || h.includes('indicador'));
+      table.querySelectorAll('tbody tr').forEach(tr=>{
+        const tds=[...tr.children];
+        if(idxOA>=0 && tds[idxOA]) tds[idxOA].classList.add('oa-link');
+        if(idxHab>=0 && tds[idxHab]) tds[idxHab].classList.add('hab-link');
+      });
+    });
+  };
+  markCells();
+
+  if(doc.documentElement.dataset.diaBridgeBound==='1') return;
+  doc.documentElement.dataset.diaBridgeBound='1';
+
+  doc.addEventListener('click',(ev)=>{
+    const cell=ev.target.closest('td.oa-link,td.hab-link');
+    if(!cell) return;
+    const tr=cell.closest('tr');
+    const table=cell.closest('table');
+    if(!tr || !table) return;
+
+    const heads=[...table.querySelectorAll('thead th')].map(h=>normalizeTxt(h.textContent).toLowerCase());
+    const row=[...tr.children].map(td=>normalizeTxt(td.textContent));
+    const idx=(name)=>heads.findIndex(h=>h===name || h.includes(name));
+    const iAsig=idx('asignatura');
+    const iNivel=idx('nivel');
+    const iCurso=idx('curso');
+    const iOA=heads.findIndex(h=>h==='oa' || h.endsWith(' oa') || h.includes('oa'));
+    const iHab=heads.findIndex(h=>h.includes('foco') || h.includes('indicador'));
+    const iLog=heads.findIndex(h=>h.includes('logro'));
+
+    const asignatura=iAsig>=0?row[iAsig]:'';
+    const nivel=iNivel>=0?nivelCodeFromText(row[iNivel]):null;
+    const curso=iCurso>=0?row[iCurso]:'DIA Optimizado';
+    const oa=iOA>=0?parseOACode(row[iOA]):null;
+    const habilidad=iHab>=0?row[iHab]:'';
+    const logro=iLog>=0?parsePctText(row[iLog]):null;
+
+    ev.preventDefault();
+    ev.stopPropagation();
+    if(cell.classList.contains('oa-link') && oa){
+      openDiaBridgeOA({oa,nivel,pct:logro,curso,indicador:habilidad});
+      return;
+    }
+    if(cell.classList.contains('hab-link')){
+      openDiaBridgeHabilidad({asignatura,habilidad,pct:logro,curso,indicador:habilidad});
+    }
+  },true);
 }
 
 function byNivel(arr){
@@ -2097,7 +2296,7 @@ function stabilizeChartForExport(ch){
 
 async function exportPNGs(){
   const prevPage=currentPage;
-  const pages=['resumen','ranking','brecha','habilidades','ejes','prioridades','simce','comparativo','detalle'];
+  const pages=['resumen','ranking','brecha','habilidades','ejes','prioridades','simce','comparativo','diaopt','detalle'];
   const pause=()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
   const sleep=(ms)=>new Promise(r=>setTimeout(r,ms));
   const slug=v=>String(v||'grafico')
@@ -2191,7 +2390,7 @@ async function exportPNGs(){
 
 async function exportSVGs(){
   const prevPage=currentPage;
-  const pages=['resumen','ranking','brecha','habilidades','ejes','prioridades','simce','comparativo','detalle'];
+  const pages=['resumen','ranking','brecha','habilidades','ejes','prioridades','simce','comparativo','diaopt','detalle'];
   const pause=()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
   const sleep=(ms)=>new Promise(r=>setTimeout(r,ms));
   const slug=v=>String(v||'grafico')
