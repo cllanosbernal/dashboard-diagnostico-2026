@@ -1503,18 +1503,28 @@ async function renderDiaPdfPage(pageNum){
 
   const base=pdfPage.getViewport({scale:1});
   const maxW=Math.max(320,(wrap.clientWidth||860)-16);
-  const scale=Math.max(0.7,Math.min(2.4,maxW/base.width));
-  const viewport=pdfPage.getViewport({scale});
+  const fitScale=Math.max(0.7,Math.min(2.6,maxW/base.width));
+  const viewport=pdfPage.getViewport({scale:fitScale});
   const dpr=Math.max(1,window.devicePixelRatio||1);
-  canvas.width=Math.floor(viewport.width*dpr);
-  canvas.height=Math.floor(viewport.height*dpr);
+  const qualityBoost=window.matchMedia('(max-width: 820px)').matches?1.2:1.6;
+  let outputScale=Math.min(4,dpr*qualityBoost);
+  const maxPixels=14_000_000;
+  const estPixels=viewport.width*viewport.height*outputScale*outputScale;
+  if(estPixels>maxPixels){
+    outputScale=Math.sqrt(maxPixels/Math.max(1,viewport.width*viewport.height));
+  }
+  outputScale=Math.max(1,outputScale);
+  const renderTransform=outputScale===1?null:[outputScale,0,0,outputScale,0,0];
+
+  canvas.width=Math.floor(viewport.width*outputScale);
+  canvas.height=Math.floor(viewport.height*outputScale);
   canvas.style.width=`${Math.floor(viewport.width)}px`;
   canvas.style.height=`${Math.floor(viewport.height)}px`;
-  ctx.setTransform(dpr,0,0,dpr,0,0);
-  ctx.clearRect(0,0,viewport.width,viewport.height);
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.clearRect(0,0,canvas.width,canvas.height);
 
   try{
-    diaPdfState.renderTask=pdfPage.render({canvasContext:ctx,viewport});
+    diaPdfState.renderTask=pdfPage.render({canvasContext:ctx,viewport,transform:renderTransform,intent:'display'});
     await diaPdfState.renderTask.promise;
     if(token!==diaPdfState.token) return;
     setDiaPdfStatus('Vista renderizada');
