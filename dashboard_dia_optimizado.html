@@ -92,13 +92,33 @@ function infoMeta(label, value) {
   return `<div class="meta"><span>${label}</span><b>${esc(fmt(value))}</b></div>`;
 }
 
+function resolvePdfUrl(row) {
+  const pageNum = Number(row?.pagina_prueba);
+  const pageSuffix = Number.isFinite(pageNum) && pageNum > 0 ? `#page=${pageNum}` : "";
+  const raw = (row?.pdf_prueba_url || "").toString().trim();
+  if (raw && !/^file:\/\//i.test(raw)) return raw;
+
+  let fileName = (row?.pdf_prueba || "").toString().trim();
+  if (!fileName && raw) {
+    try {
+      const url = new URL(raw);
+      fileName = decodeURIComponent((url.pathname || "").split("/").pop() || "");
+    } catch (_) {
+      const match = raw.match(/([^\/#?]+\.pdf)/i);
+      fileName = match ? decodeURIComponent(match[1]) : "";
+    }
+  }
+  if (!fileName) return "";
+  return `dia_pruebas_pdf/${fileName.split("/").map(encodeURIComponent).join("/")}${pageSuffix}`;
+}
+
 function openQuestion(id) {
   const row = questionById.get(id);
   if (!row) return;
   const modal = document.querySelector("#question-modal");
   document.querySelector("#modal-title").textContent = `${row.asignatura} · ${row.curso} · Pregunta ${row.pregunta}`;
   document.querySelector("#modal-subtitle").textContent = `${row.nivel} · OA ${row.oa} · ${row.alerta}`;
-  const pdfUrl = row.pdf_prueba_url || "";
+  const pdfUrl = resolvePdfUrl(row);
   const pdfViewer = pdfUrl
     ? `<div class="pdf-actions"><div class="title" style="margin:0">Vista directa del PDF</div><a class="pdf-link" href="${encodeURI(pdfUrl)}" target="_blank" rel="noopener">Abrir PDF en página ${row.pagina_prueba || ""}</a></div><iframe class="pdf-frame" title="Vista PDF de la pregunta" src="${encodeURI(pdfUrl)}"></iframe>`
     : `<div class="pdf-actions"><div class="title" style="margin:0">Vista directa del PDF</div></div><div class="pdf-empty">No hay PDF de prueba asociado para esta pregunta.</div>`;
