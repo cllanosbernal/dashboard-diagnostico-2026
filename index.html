@@ -12,6 +12,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="dia_intermedio_2026_data.js"></script>
 <style>
 :root{--bg:#0a0e1a;--surface:#111827;--surface2:#1a2236;--border:#1e2d45;--text:#e8edf5;--muted:#6b7fa3;--lectura:#38bdf8;--lectura-dim:#0c2d42;--mat:#f59e0b;--mat-dim:#3d2800;--alto:#10b981;--bajo:#ef4444;--hc:#a78bfa;--hc-dim:#2d1b5e;--accent:#38bdf8;--r:12px}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -359,7 +360,7 @@ main canvas{display:block;width:100%!important;max-width:100%;height:auto!import
   <div class="header-left">
     <div class="school-tag">RBD 9959 · Diagnóstico Integral de Aprendizajes</div>
     <h1>Complejo Educacional <span>Maipú</span></h1>
-    <div class="header-meta">Lectura &amp; Matemática · Año 2026 · Bases Curriculares MINEDUC</div>
+    <div class="header-meta">Diagnóstico + Monitoreo Intermedio 2026 · Lectura · Matemática · Ciencias · Historia</div>
   </div>
   <div class="header-stats">
     <div class="hstat"><div class="hstat-val" id="stat-est">—</div><div class="hstat-label">Estudiantes</div></div>
@@ -378,7 +379,7 @@ main canvas{display:block;width:100%!important;max-width:100%;height:auto!import
   <button class="tab" onclick="showPage('prioridades')"><span class="tab-ico">🎯</span><span class="tab-txt">Prioridades</span></button>
   <button class="tab" onclick="showPage('simce')"><span class="tab-ico">🧪</span><span class="tab-txt">SIMCE 2026</span></button>
   <button class="tab" onclick="showPage('comparativo')"><span class="tab-ico">📉</span><span class="tab-txt">Comparativo 25–26</span></button>
-  <button class="tab" onclick="showPage('meta')"><span class="tab-ico">🎚️</span><span class="tab-txt">Meta Intermedia 2026</span></button>
+  <button class="tab" onclick="showPage('meta')"><span class="tab-ico">📈</span><span class="tab-txt">Resultados Intermedio 2026</span></button>
   <button class="tab" onclick="showPage('diaint')"><span class="tab-ico">🧭</span><span class="tab-txt">Críticas Intermedio 2025</span></button>
   <button class="tab" onclick="showPage('diaopt')"><span class="tab-ico">🧩</span><span class="tab-txt">Preguntas críticas DIA 2026</span></button>
   <button class="tab" onclick="showPage('detalle')"><span class="tab-ico">🔍</span><span class="tab-txt">Detalle por Curso</span></button>
@@ -387,7 +388,7 @@ main canvas{display:block;width:100%!important;max-width:100%;height:auto!import
 <div class="filters">
   <span class="filter-label">Ciclo:</span>
   <button class="filter-btn act" id="f-todos" onclick="setFiltro('todos')">Todos</button>
-  <button class="filter-btn" id="f-1c" onclick="setFiltro('1° Ciclo')">1° Ciclo (2°–4°)</button>
+  <button class="filter-btn" id="f-1c" onclick="setFiltro('1° Ciclo')">1° Ciclo (1°–4°)</button>
   <button class="filter-btn" id="f-2c" onclick="setFiltro('2° Ciclo')">2° Ciclo (5°–8°)</button>
   <button class="filter-btn" id="f-em" onclick="setFiltro('Ens. Media')">Ens. Media (I°–II°)</button>
   <div class="logro-legend">
@@ -409,6 +410,10 @@ main canvas{display:block;width:100%!important;max-width:100%;height:auto!import
 
 <!-- RESUMEN -->
 <div id="page-resumen" class="page active">
+  <div style="font-size:12px;color:var(--text);margin-bottom:16px;background:linear-gradient(90deg,rgba(56,189,248,.14),rgba(16,185,129,.1));border:1px solid rgba(56,189,248,.35);padding:11px 14px;border-radius:9px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+    <span>✨ <strong>Nuevo:</strong> resultados reales DIA Monitoreo Intermedio 2026 disponibles para cuatro áreas.</span>
+    <button class="filter-btn act" onclick="showPage('meta')">Ver resultados intermedios</button>
+  </div>
   <div class="kpi-grid">
     <div class="kpi" style="--accent-color:var(--lectura)"><div class="kpi-label">Promedio Lectura</div><div class="kpi-val" id="k-pl">—<span>%</span></div><div class="kpi-sub" id="k-pl-sub">—</div></div>
     <div class="kpi" style="--accent-color:var(--mat)"><div class="kpi-label">Promedio Matemática</div><div class="kpi-val" id="k-pm">—<span>%</span></div><div class="kpi-sub" id="k-pm-sub">—</div></div>
@@ -455,32 +460,33 @@ main canvas{display:block;width:100%!important;max-width:100%;height:auto!import
   </div>
 </div>
 
-<!-- META INTERMEDIA 2026 -->
+<!-- RESULTADOS INTERMEDIO 2026 -->
 <div id="page-meta" class="page">
   <div style="font-size:12px;color:var(--muted);margin-bottom:16px;background:var(--surface);border:1px solid var(--border);padding:10px 14px;border-radius:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-    <span>🎚️</span> Meta DIA <strong>Monitoreo Intermedio 2026</strong> construida con resultados del Monitoreo Intermedio 2025. Periodo de aplicación: <strong>7 de julio al 14 de agosto</strong>.
+    <span>📈</span> Resultados reales del <strong>DIA Monitoreo Intermedio 2026</strong>, descargados el <strong>28 de agosto de 2026</strong>. Incluye Lectura, Matemática, Ciencias Naturales e Historia.
+    <a href="DIA_Intermedio_2026_Consolidado.xlsx" download style="color:var(--accent);font-weight:700;text-decoration:none;border-bottom:1px dotted rgba(56,189,248,.55)">Descargar Excel consolidado</a>
   </div>
   <div id="meta-kpis" class="meta-kpi-grid"></div>
   <div class="charts-2col" style="margin-bottom:16px">
-    <div class="card"><div class="card-header"><span class="card-title">Promedio 2025 vs meta 2026 por ciclo</span><span class="card-badge badge-ambas">Meta</span></div><canvas id="ch-meta-ciclo"></canvas></div>
-    <div class="card"><div class="card-header"><span class="card-title">Nivel I 2025 vs meta 2026</span><span class="card-badge" style="background:rgba(239,68,68,.15);color:#ef4444">Reducción</span></div><canvas id="ch-meta-n1"></canvas></div>
+    <div class="card"><div class="card-header"><span class="card-title">Resultado por área</span><span class="card-badge badge-ambas">Intermedio 2026</span></div><canvas id="ch-meta-ciclo"></canvas></div>
+    <div class="card"><div class="card-header"><span class="card-title">Diagnóstico vs Intermedio</span><span class="card-badge badge-ambas">Cursos comparables</span></div><canvas id="ch-meta-n1"></canvas></div>
   </div>
   <div class="charts-2col" style="margin-bottom:16px">
     <div class="card">
-      <div class="card-header"><span class="card-title">Avance esperado por asignatura</span><span class="card-badge badge-ambas">Global</span></div>
+      <div class="card-header"><span class="card-title">Resumen por área</span><span class="card-badge badge-ambas">Cursos y participantes</span></div>
       <div id="meta-progress" class="meta-progress-list"></div>
     </div>
     <div class="card">
-      <div class="card-header"><span class="card-title">Focos críticos para seguimiento</span><span class="card-badge cmp-alert">Cursos</span></div>
+      <div class="card-header"><span class="card-title">Focos prioritarios del período</span><span class="card-badge cmp-alert">Menor logro</span></div>
       <div id="meta-focus" class="cmp-list"></div>
     </div>
   </div>
   <div class="card" style="margin-bottom:16px">
-    <div class="card-header"><span class="card-title">Meta por nivel</span><span class="card-badge badge-ambas">Promedio · Nivel I · Nivel III</span></div>
+    <div class="card-header"><span class="card-title">Variación por curso — Diagnóstico a Intermedio</span><span class="card-badge badge-ambas">Lectura y Matemática</span></div>
     <div id="meta-nivel-tabla" class="meta-table-wrap"></div>
   </div>
   <div class="card">
-    <div class="card-header"><span class="card-title">Meta por curso</span><span class="card-badge badge-ambas">Detalle UTP</span></div>
+    <div class="card-header"><span class="card-title">Detalle consolidado por curso y área</span><span class="card-badge badge-ambas">105 registros curso-área</span></div>
     <div id="meta-curso-tabla" class="meta-table-wrap"></div>
   </div>
 </div>
@@ -1172,103 +1178,115 @@ function metaMean(rows,key){
   const vals=rows.map(r=>r[key]).filter(v=>v!=null && !Number.isNaN(v));
   return vals.length?+(vals.reduce((s,v)=>s+Number(v),0)/vals.length).toFixed(1):null;
 }
-function metaSubjectSummary(rows,asignatura){
-  const rs=rows.filter(r=>r.asignatura===asignatura);
-  return {
-    asignatura,
-    cursos:new Set(rs.map(r=>r.curso)).size,
-    estudiantes:rs.reduce((s,r)=>s+(Number(r.estudiantes)||0),0),
-    promedio_2025:metaMean(rs,'promedio_pct'),
-    meta_promedio:metaMean(rs,'meta_promedio_pct'),
-    nI_2025:metaMean(rs,'nI_pct'),
-    meta_nI:metaMean(rs,'meta_nI_pct'),
-    nIII_2025:metaMean(rs,'nIII_pct'),
-    meta_nIII:metaMean(rs,'meta_nIII_pct')
-  };
+function interAreaColor(area){
+  if(area==='Lectura') return C.lec;
+  if(area==='Matemática') return C.mat;
+  if(area==='Ciencias Naturales') return '#10b981';
+  return '#a78bfa';
+}
+function interAreaShort(area){
+  if(area==='Ciencias Naturales') return 'Ciencias';
+  if(area==='Historia y Cs. Sociales') return 'Historia';
+  return area;
+}
+function interBestWorst(row){
+  const entries=Object.entries(row.indicadores||{}).filter(([,v])=>v!=null).sort((a,b)=>b[1]-a[1]);
+  if(!entries.length) return {best:null,worst:null};
+  return {best:entries[0],worst:entries[entries.length-1]};
 }
 function renderMetaIntermedia(){
-  const cursos=META_INTERMEDIO.cursos.filter(r=>metaCycleOk(r.ciclo));
-  const ciclos=META_INTERMEDIO.ciclos.filter(r=>metaCycleOk(r.ciclo));
-  const niveles=META_INTERMEDIO.niveles.filter(r=>metaCycleOk(r.ciclo));
-  const resumen=filtro==='todos'
-    ? META_INTERMEDIO.resumen
-    : ['Lectura','Matematica'].map(asig=>metaSubjectSummary(cursos,asig));
-  const lec=resumen.find(r=>r.asignatura==='Lectura') || {};
-  const mat=resumen.find(r=>r.asignatura==='Matematica') || {};
-  const foco=cursos
-    .filter(r=>r.promedio_pct!=null)
-    .sort((a,b)=>(b.nI_pct-a.nI_pct)||(a.promedio_pct-b.promedio_pct))
-    .slice(0,8);
-  const reduccionNI=metaMean(resumen.map(r=>({v:(r.nI_2025??0)-(r.meta_nI??0)})),'v');
+  if(typeof DIA_INTERMEDIO_2026==='undefined'){
+    const target=document.getElementById('meta-kpis');
+    if(target) target.innerHTML='<div class="meta-note">No se pudo cargar la base DIA Intermedio 2026.</div>';
+    return;
+  }
+  const areas=['Lectura','Matemática','Ciencias Naturales','Historia y Cs. Sociales'];
+  const cursos=DIA_INTERMEDIO_2026.cursos.filter(r=>metaCycleOk(r.ciclo));
+  const comparaciones=DIA_INTERMEDIO_2026.comparaciones.filter(r=>metaCycleOk(r.ciclo) && r.diagnostico!=null && r.intermedio!=null);
+  const resumen=areas.map(area=>{
+    const rows=cursos.filter(r=>r.area===area && r.promedio!=null);
+    return {
+      area,
+      cursos:rows.length,
+      estudiantes:rows.reduce((s,r)=>s+(Number(r.estudiantes)||0),0),
+      promedio:metaMean(rows,'promedio'),
+      mejor:rows.length?[...rows].sort((a,b)=>b.promedio-a.promedio)[0]:null,
+      menor:rows.length?[...rows].sort((a,b)=>a.promedio-b.promedio)[0]:null
+    };
+  });
+  const foco=[...cursos].filter(r=>r.promedio!=null).sort((a,b)=>a.promedio-b.promedio).slice(0,8);
   const kpis=document.getElementById('meta-kpis');
   if(kpis){
-    kpis.innerHTML=`
-      <div class="meta-kpi" style="border-top:3px solid var(--lectura)"><div class="val" style="color:${cPromSafe(lec.meta_promedio)}">${metaFmt(lec.meta_promedio)}</div><div class="lbl">Meta Lectura</div><div class="sub">Base 2025: ${metaFmt(lec.promedio_2025)} · ${lec.cursos||0} cursos</div></div>
-      <div class="meta-kpi" style="border-top:3px solid var(--mat)"><div class="val" style="color:${cPromSafe(mat.meta_promedio)}">${metaFmt(mat.meta_promedio)}</div><div class="lbl">Meta Matemática</div><div class="sub">Base 2025: ${metaFmt(mat.promedio_2025)} · ${mat.cursos||0} cursos</div></div>
-      <div class="meta-kpi" style="border-top:3px solid var(--bajo)"><div class="val" style="color:var(--alto)">-${metaFmt(reduccionNI).replace('—','0.0%')}</div><div class="lbl">Reducción Nivel I</div><div class="sub">Promedio esperado entre asignaturas</div></div>
-      <div class="meta-kpi" style="border-top:3px solid var(--accent)"><div class="val">${cursos.length}</div><div class="lbl">Cursos con meta</div><div class="sub">${cursos.reduce((s,r)=>s+(Number(r.estudiantes)||0),0).toLocaleString('es-CL')} registros de estudiantes</div></div>`;
+    kpis.innerHTML=resumen.map(r=>{
+      const color=interAreaColor(r.area);
+      return `<div class="meta-kpi" style="border-top:3px solid ${color}"><div class="val" style="color:${cPromSafe(r.promedio)}">${metaFmt(r.promedio)}</div><div class="lbl">${interAreaShort(r.area)}</div><div class="sub">${r.cursos} cursos · ${r.estudiantes.toLocaleString('es-CL')} rendiciones</div></div>`;
+    }).join('');
   }
 
   const progress=document.getElementById('meta-progress');
   if(progress){
     progress.innerHTML=resumen.map(r=>{
-      const color=r.asignatura==='Lectura'?C.lec:C.mat;
-      const base=Math.max(0,Math.min(100,r.promedio_2025||0));
-      const target=Math.max(0,Math.min(100,r.meta_promedio||0));
+      const color=interAreaColor(r.area);
+      const result=Math.max(0,Math.min(100,r.promedio||0));
       return `<div class="meta-progress-row">
-        <div class="name">${r.asignatura==='Matematica'?'Matemática':r.asignatura}</div>
+        <div class="name">${interAreaShort(r.area)}</div>
         <div class="meta-track">
-          <div class="meta-fill meta-fill-base" style="width:${base}%;background:${color}"></div>
-          <div class="meta-fill meta-fill-target" style="width:${target}%;background:${color}"></div>
+          <div class="meta-fill meta-fill-target" style="width:${result}%;background:${color}"></div>
         </div>
-        <div style="font-family:'JetBrains Mono',monospace;color:${color};font-weight:800">${metaFmt(target)}</div>
+        <div style="font-family:'JetBrains Mono',monospace;color:${color};font-weight:800">${metaFmt(result)}</div>
       </div>`;
-    }).join('') + `<div class="meta-note">Barra tenue: resultado Monitoreo Intermedio 2025. Barra sólida: meta sugerida para Monitoreo Intermedio 2026.</div>`;
+    }).join('') + `<div class="meta-note">Promedio simple de los porcentajes de los ejes/indicadores informados por curso. La base publicada no incluye nombres de estudiantes.</div>`;
   }
 
   const focus=document.getElementById('meta-focus');
   if(focus){
-    focus.innerHTML=foco.map(r=>`<div class="cmp-item">
-      <div><b>${r.asignatura==='Matematica'?'Matemática':r.asignatura} · ${r.curso}</b><div class="muted">${r.nivel} · ${r.estudiantes} estudiantes · base ${metaFmt(r.promedio_pct)} → meta ${metaFmt(r.meta_promedio_pct)}</div></div>
-      <span class="cmp-badge cmp-alert">NI ${metaFmt(r.nI_pct)} → ${metaFmt(r.meta_nI_pct)}</span>
-    </div>`).join('') || '<div class="meta-note">Sin cursos críticos para el filtro actual.</div>';
+    focus.innerHTML=foco.map(r=>{
+      const iw=interBestWorst(r);
+      return `<div class="cmp-item">
+        <div><b>${interAreaShort(r.area)} · ${r.curso}</b><div class="muted">${r.nivel_label} · ${r.estudiantes} estudiantes${iw.worst?` · menor indicador: ${iw.worst[0]} (${metaFmt(iw.worst[1])})`:''}</div></div>
+        <span class="cmp-badge cmp-alert">${metaFmt(r.promedio)}</span>
+      </div>`;
+    }).join('') || '<div class="meta-note">Sin resultados para el filtro actual.</div>';
   }
 
-  const labels=ciclos.map(r=>`${r.asignatura==='Matematica'?'Mat':r.asignatura} · ${r.ciclo.replace('Enseñanza Media','EM')}`);
   kill('meta-ciclo');
   charts['meta-ciclo']=new Chart(document.getElementById('ch-meta-ciclo'),{
     type:'bar',
-    data:{labels,datasets:[
-      {label:'Base 2025',data:ciclos.map(r=>r.promedio_2025),backgroundColor:'rgba(107,127,163,.35)',borderColor:'rgba(107,127,163,.85)',borderWidth:1,borderRadius:4},
-      {label:'Meta 2026',data:ciclos.map(r=>r.meta_promedio),backgroundColor:ciclos.map(r=>r.asignatura==='Lectura'?'rgba(56,189,248,.5)':'rgba(245,158,11,.5)'),borderColor:ciclos.map(r=>r.asignatura==='Lectura'?C.lec:C.mat),borderWidth:2,borderRadius:4}
-    ]},
+    data:{labels:resumen.map(r=>interAreaShort(r.area)),datasets:[{label:'Promedio Intermedio 2026',data:resumen.map(r=>r.promedio),backgroundColor:resumen.map(r=>interAreaColor(r.area)+'77'),borderColor:resumen.map(r=>interAreaColor(r.area)),borderWidth:2,borderRadius:5}]},
     options:{...CD,plugins:{...CD.plugins,tooltip:{...CD.plugins.tooltip,callbacks:{label:ctx=>` ${ctx.dataset.label}: ${metaFmt(ctx.raw)}`}}},layout:{padding:{right:8,left:2}}},
     plugins:[lineaRef()]
+  });
+
+  const cmpAreas=['Lectura','Matemática'].map(area=>{
+    const rows=comparaciones.filter(r=>r.area===area);
+    return {area,diagnostico:metaMean(rows,'diagnostico'),intermedio:metaMean(rows,'intermedio'),cursos:rows.length};
   });
   kill('meta-n1');
   charts['meta-n1']=new Chart(document.getElementById('ch-meta-n1'),{
     type:'bar',
-    data:{labels,datasets:[
-      {label:'Nivel I 2025',data:ciclos.map(r=>r.nI_2025),backgroundColor:'rgba(239,68,68,.55)',borderColor:'#ef4444',borderWidth:2,borderRadius:4},
-      {label:'Meta Nivel I 2026',data:ciclos.map(r=>r.meta_nI),backgroundColor:'rgba(16,185,129,.45)',borderColor:'#10b981',borderWidth:2,borderRadius:4}
+    data:{labels:cmpAreas.map(r=>`${r.area} · ${r.cursos} cursos`),datasets:[
+      {label:'Diagnóstico 2026',data:cmpAreas.map(r=>r.diagnostico),backgroundColor:'rgba(107,127,163,.4)',borderColor:'rgba(107,127,163,.9)',borderWidth:1,borderRadius:4},
+      {label:'Intermedio 2026',data:cmpAreas.map(r=>r.intermedio),backgroundColor:cmpAreas.map(r=>interAreaColor(r.area)+'77'),borderColor:cmpAreas.map(r=>interAreaColor(r.area)),borderWidth:2,borderRadius:4}
     ]},
-    options:{...CD,plugins:{...CD.plugins,tooltip:{...CD.plugins.tooltip,callbacks:{label:ctx=>` ${ctx.dataset.label}: ${metaFmt(ctx.raw)}`}}},layout:{padding:{right:8,left:2}}}
+    options:{...CD,plugins:{...CD.plugins,tooltip:{...CD.plugins.tooltip,callbacks:{label:ctx=>` ${ctx.dataset.label}: ${metaFmt(ctx.raw)}`}}},layout:{padding:{right:8,left:2}}},
+    plugins:[lineaRef()]
   });
 
   const nivelEl=document.getElementById('meta-nivel-tabla');
   if(nivelEl){
-    const order={'1° Basico':1,'2° Basico':2,'3° Basico':3,'4° Basico':4,'5° Basico':5,'6° Basico':6,'7° Basico':7,'8° Basico':8,'I° Medio':9,'II° Medio':10};
-    const rows=[...niveles].sort((a,b)=>(order[a.nivel]||99)-(order[b.nivel]||99)||a.asignatura.localeCompare(b.asignatura,'es'));
-    nivelEl.innerHTML=`<table class="ranking-table"><thead><tr><th>Asignatura</th><th>Ciclo</th><th>Nivel</th><th>Cursos</th><th>Prom. 2025</th><th>Meta 2026</th><th>Nivel I</th><th>Meta Nivel I</th><th>Nivel III</th><th>Meta Nivel III</th></tr></thead><tbody>
-      ${rows.map(r=>`<tr><td>${r.asignatura==='Matematica'?'Matemática':r.asignatura}</td><td>${r.ciclo.replace('Enseñanza Media','Ens. Media')}</td><td class="rank-curso">${r.nivel}</td><td>${r.cursos}</td><td style="color:${cPromSafe(r.promedio_2025)}">${metaFmt(r.promedio_2025)}</td><td style="color:${cPromSafe(r.meta_promedio)}">${metaFmt(r.meta_promedio)}</td><td style="color:#ef4444">${metaFmt(r.nI_2025)}</td><td style="color:#10b981">${metaFmt(r.meta_nI)}</td><td>${metaFmt(r.nIII_2025)}</td><td>${metaFmt(r.meta_nIII)}</td></tr>`).join('')}
+    const rows=[...comparaciones].sort((a,b)=>(a.variacion??999)-(b.variacion??999));
+    nivelEl.innerHTML=`<table class="ranking-table"><thead><tr><th>Área</th><th>Curso</th><th>Ciclo</th><th>Diagnóstico</th><th>Intermedio</th><th>Variación</th></tr></thead><tbody>
+      ${rows.map(r=>{const color=r.variacion>0?'#10b981':r.variacion<0?'#ef4444':'var(--muted)';return `<tr><td>${r.area}</td><td class="rank-curso">${r.curso}</td><td>${r.ciclo}</td><td>${metaFmt(r.diagnostico)}</td><td style="color:${cPromSafe(r.intermedio)}">${metaFmt(r.intermedio)}</td><td style="color:${color};font-weight:800">${r.variacion>0?'+':''}${metaFmt(r.variacion)}</td></tr>`;}).join('')}
     </tbody></table>`;
   }
 
   const cursoEl=document.getElementById('meta-curso-tabla');
   if(cursoEl){
-    const rows=[...cursos].sort((a,b)=>(b.nI_pct-a.nI_pct)||(a.promedio_pct??999)-(b.promedio_pct??999));
-    cursoEl.innerHTML=`<table class="ranking-table"><thead><tr><th>Asignatura</th><th>Curso</th><th>Nivel</th><th>Est.</th><th>Prom. 2025</th><th>Meta prom.</th><th>Nivel I</th><th>Meta Nivel I</th><th>Nivel III</th><th>Meta Nivel III</th></tr></thead><tbody>
-      ${rows.map(r=>`<tr><td>${r.asignatura==='Matematica'?'Matemática':r.asignatura}</td><td class="rank-curso">${r.curso}</td><td>${r.nivel}</td><td>${r.estudiantes}</td><td style="color:${cPromSafe(r.promedio_pct)}">${metaFmt(r.promedio_pct)}</td><td style="color:${cPromSafe(r.meta_promedio_pct)}">${metaFmt(r.meta_promedio_pct)}</td><td style="color:#ef4444">${metaFmt(r.nI_pct)}</td><td style="color:#10b981">${metaFmt(r.meta_nI_pct)}</td><td>${metaFmt(r.nIII_pct)}</td><td>${metaFmt(r.meta_nIII_pct)}</td></tr>`).join('')}
+    const order={"1":1,"2":2,"3":3,"4":4,"5":5,"6":6,"7":7,"8":8,"I":9,"II":10};
+    const cmpMap=new Map(DIA_INTERMEDIO_2026.comparaciones.map(r=>[`${r.area}|${r.curso}`,r]));
+    const rows=[...cursos].sort((a,b)=>(order[a.nivel]||99)-(order[b.nivel]||99)||a.letra.localeCompare(b.letra,'es')||a.area.localeCompare(b.area,'es'));
+    cursoEl.innerHTML=`<table class="ranking-table"><thead><tr><th>Área</th><th>Curso</th><th>Est.</th><th>Promedio</th><th>Logro</th><th>Diagnóstico</th><th>Variación</th><th>Mayor indicador</th><th>Menor indicador</th></tr></thead><tbody>
+      ${rows.map(r=>{const cmp=cmpMap.get(`${r.area}|${r.curso}`);const iw=interBestWorst(r);const delta=cmp?.variacion;const deltaColor=delta>0?'#10b981':delta<0?'#ef4444':'var(--muted)';return `<tr><td>${interAreaShort(r.area)}</td><td class="rank-curso">${r.curso}</td><td>${r.estudiantes}</td><td style="color:${cPromSafe(r.promedio)};font-weight:800">${metaFmt(r.promedio)}</td><td>${chip(r.promedio)}</td><td>${metaFmt(cmp?.diagnostico)}</td><td style="color:${deltaColor};font-weight:800">${delta==null?'—':`${delta>0?'+':''}${metaFmt(delta)}`}</td><td>${iw.best?`${iw.best[0]} · ${metaFmt(iw.best[1])}`:'—'}</td><td>${iw.worst?`${iw.worst[0]} · ${metaFmt(iw.worst[1])}`:'—'}</td></tr>`;}).join('')}
     </tbody></table>`;
   }
 }

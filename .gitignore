@@ -1,0 +1,5 @@
+build/
+.playwright-cli/
+node_modules
+output/
+spreadsheet_work/
