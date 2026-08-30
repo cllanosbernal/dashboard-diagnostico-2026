@@ -192,6 +192,17 @@ main canvas{display:block;width:100%!important;max-width:100%;height:auto!import
 .meta-fill-target{position:absolute;left:0;top:0;height:100%;opacity:.9}
 .meta-table-wrap{overflow:auto}
 .meta-note{font-size:11px;color:var(--muted);line-height:1.55}
+.change-filter-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.change-filter-label{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.7px}
+.change-filter-btn{padding:6px 10px;border-radius:7px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);font-size:11px;font-weight:700;cursor:pointer;font-family:'Sora',sans-serif}
+.change-filter-btn:hover{border-color:var(--accent);color:var(--text)}
+.change-filter-btn.active{background:rgba(56,189,248,.16);border-color:rgba(56,189,248,.65);color:var(--accent)}
+.change-up{background:rgba(16,185,129,.16);color:#10b981}
+.change-down{background:rgba(239,68,68,.16);color:#ef4444}
+.change-flat{background:rgba(107,127,163,.18);color:#93a4bf}
+.change-delta{font-family:'JetBrains Mono',monospace;font-weight:800;white-space:nowrap}
+.change-source{font-size:12px;color:var(--muted);margin-bottom:16px;background:linear-gradient(90deg,rgba(56,189,248,.1),rgba(167,139,250,.08));border:1px solid rgba(56,189,248,.3);padding:11px 14px;border-radius:9px;line-height:1.55}
+.change-source strong{color:var(--text)}
 
 .diaint-source{font-size:12px;color:var(--muted);margin-bottom:16px;background:var(--surface);border:1px solid var(--border);padding:10px 14px;border-radius:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .diaint-source strong{color:var(--text)}
@@ -380,6 +391,7 @@ main canvas{display:block;width:100%!important;max-width:100%;height:auto!import
   <button class="tab" onclick="showPage('simce')"><span class="tab-ico">🧪</span><span class="tab-txt">SIMCE 2026</span></button>
   <button class="tab" onclick="showPage('comparativo')"><span class="tab-ico">📉</span><span class="tab-txt">Comparativo 25–26</span></button>
   <button class="tab" onclick="showPage('meta')"><span class="tab-ico">📈</span><span class="tab-txt">Resultados Intermedio 2026</span></button>
+  <button class="tab" onclick="showPage('cambios')"><span class="tab-ico">🔄</span><span class="tab-txt">Cambios Inicio–Intermedio</span></button>
   <button class="tab" onclick="showPage('diaint')"><span class="tab-ico">🧭</span><span class="tab-txt">Críticas Intermedio 2025</span></button>
   <button class="tab" onclick="showPage('diaopt')"><span class="tab-ico">🧩</span><span class="tab-txt">Preguntas críticas DIA 2026</span></button>
   <button class="tab" onclick="showPage('detalle')"><span class="tab-ico">🔍</span><span class="tab-txt">Detalle por Curso</span></button>
@@ -412,7 +424,10 @@ main canvas{display:block;width:100%!important;max-width:100%;height:auto!import
 <div id="page-resumen" class="page active">
   <div style="font-size:12px;color:var(--text);margin-bottom:16px;background:linear-gradient(90deg,rgba(56,189,248,.14),rgba(16,185,129,.1));border:1px solid rgba(56,189,248,.35);padding:11px 14px;border-radius:9px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
     <span>✨ <strong>Nuevo:</strong> resultados reales DIA Monitoreo Intermedio 2026 disponibles para cuatro áreas.</span>
-    <button class="filter-btn act" onclick="showPage('meta')">Ver resultados intermedios</button>
+    <span style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="filter-btn act" onclick="showPage('meta')">Ver resultados intermedios</button>
+      <button class="filter-btn" onclick="showPage('cambios')">Ver cambios Inicio–Intermedio</button>
+    </span>
   </div>
   <div class="kpi-grid">
     <div class="kpi" style="--accent-color:var(--lectura)"><div class="kpi-label">Promedio Lectura</div><div class="kpi-val" id="k-pl">—<span>%</span></div><div class="kpi-sub" id="k-pl-sub">—</div></div>
@@ -488,6 +503,33 @@ main canvas{display:block;width:100%!important;max-width:100%;height:auto!import
   <div class="card">
     <div class="card-header"><span class="card-title">Detalle consolidado por curso y área</span><span class="card-badge badge-ambas">105 registros curso-área</span></div>
     <div id="meta-curso-tabla" class="meta-table-wrap"></div>
+  </div>
+</div>
+
+<!-- CAMBIOS INICIO–INTERMEDIO 2026 -->
+<div id="page-cambios" class="page">
+  <div class="change-source">
+    <strong>Seguimiento Inicio–Intermedio 2026.</strong> Esta sección reúne los resultados disponibles de ambos momentos para verificar si cada resultado curso-área aumenta, disminuye o permanece igual. La variación se expresa en <strong>puntos porcentuales (pp)</strong> y es descriptiva: no implica causalidad ni significancia estadística. Ciencias e Historia no se incluyen porque no cuentan con resultado de Inicio en la base del dashboard.
+  </div>
+  <div id="chg-kpis" class="meta-kpi-grid"></div>
+  <div class="change-filter-row">
+    <span class="change-filter-label">Mostrar resultados que:</span>
+    <button id="chg-f-todos" class="change-filter-btn active" onclick="setCambioEstado('todos')">Todos</button>
+    <button id="chg-f-aumenta" class="change-filter-btn" onclick="setCambioEstado('aumenta')">Aumentan</button>
+    <button id="chg-f-disminuye" class="change-filter-btn" onclick="setCambioEstado('disminuye')">Disminuyen</button>
+    <button id="chg-f-igual" class="change-filter-btn" onclick="setCambioEstado('igual')">Sin cambio</button>
+  </div>
+  <div class="charts-2col" style="margin-bottom:16px">
+    <div class="card"><div class="card-header"><span class="card-title">Dirección de los cambios observados</span><span class="card-badge badge-ambas">Resultados curso-área</span></div><canvas id="ch-chg-distrib"></canvas></div>
+    <div class="card"><div class="card-header"><span class="card-title">Cambio promedio por ciclo y área</span><span class="card-badge badge-ambas">Puntos porcentuales</span></div><canvas id="ch-chg-ciclo"></canvas></div>
+  </div>
+  <div class="charts-2col" style="margin-bottom:16px">
+    <div class="card"><div class="card-header"><span class="card-title">Mayores aumentos observados</span><span class="cmp-badge change-up">Aumenta</span></div><div id="chg-up" class="cmp-list"></div></div>
+    <div class="card"><div class="card-header"><span class="card-title">Disminuciones para revisar</span><span class="cmp-badge change-down">Disminuye</span></div><div id="chg-down" class="cmp-list"></div></div>
+  </div>
+  <div class="card">
+    <div class="card-header"><span class="card-title">Resultados de Inicio e Intermedio por curso</span><span class="card-badge badge-ambas">Seguimiento descriptivo</span></div>
+    <div id="chg-table" class="meta-table-wrap"></div>
   </div>
 </div>
 
@@ -754,7 +796,7 @@ const RAW_2025 = {"lectura":[{"nivel":"2","letra":"A","ciclo":"1° Ciclo","label
 const META_INTERMEDIO = {"resumen":[{"asignatura":"Lectura","cursos":37,"estudiantes":1391,"promedio_2025":56.7,"nI_2025":22.2,"nIII_2025":16.1,"meta_promedio":61.4,"meta_nI":16.5,"meta_nIII":21.7},{"asignatura":"Matematica","cursos":37,"estudiantes":1464,"promedio_2025":44.0,"nI_2025":57.4,"nIII_2025":4.5,"meta_promedio":50.6,"meta_nI":48.1,"meta_nIII":10.4}],"ciclos":[{"asignatura":"Lectura","ciclo":"1° Ciclo","cursos":13,"estudiantes":536,"promedio_2025":62.2,"nI_2025":9.5,"nIII_2025":23.5,"meta_promedio":66.1,"meta_nI":6.9,"meta_nIII":34.0},{"asignatura":"Lectura","ciclo":"2° Ciclo","cursos":16,"estudiantes":594,"promedio_2025":54.0,"nI_2025":27.2,"nIII_2025":11.0,"meta_promedio":59.1,"meta_nI":20.1,"meta_nIII":15.6},{"asignatura":"Lectura","ciclo":"Enseñanza Media","cursos":8,"estudiantes":261,"promedio_2025":55.3,"nI_2025":32.8,"nIII_2025":14.3,"meta_promedio":60.2,"meta_nI":24.8,"meta_nIII":18.7},{"asignatura":"Matematica","ciclo":"1° Ciclo","cursos":13,"estudiantes":529,"promedio_2025":62.5,"nI_2025":25.3,"nIII_2025":11.5,"meta_promedio":66.7,"meta_nI":20.4,"meta_nIII":15.2},{"asignatura":"Matematica","ciclo":"2° Ciclo","cursos":16,"estudiantes":633,"promedio_2025":36.2,"nI_2025":71.9,"nIII_2025":0.5,"meta_promedio":44.2,"meta_nI":60.1,"meta_nIII":7.7},{"asignatura":"Matematica","ciclo":"Enseñanza Media","cursos":8,"estudiantes":302,"promedio_2025":29.4,"nI_2025":80.5,"nIII_2025":1.2,"meta_promedio":37.2,"meta_nI":69.3,"meta_nIII":8.2}],"niveles":[{"asignatura":"Lectura","nivel":"1° Basico","ciclo":"1° Ciclo","cursos":3,"estudiantes":120,"promedio_2025":null,"nI_2025":0.0,"nIII_2025":0.0,"meta_promedio":null,"meta_nI":0.0,"meta_nIII":null},{"asignatura":"Lectura","nivel":"2° Basico","ciclo":"1° Ciclo","cursos":3,"estudiantes":120,"promedio_2025":57.1,"nI_2025":14.0,"nIII_2025":35.0,"meta_promedio":61.8,"meta_nI":9.8,"meta_nIII":39.2},{"asignatura":"Lectura","nivel":"3° Basico","ciclo":"1° Ciclo","cursos":3,"estudiantes":133,"promedio_2025":68.7,"nI_2025":4.5,"nIII_2025":34.5,"meta_promedio":72.0,"meta_nI":3.9,"meta_nIII":37.5},{"asignatura":"Lectura","nivel":"4° Basico","ciclo":"1° Ciclo","cursos":4,"estudiantes":163,"promedio_2025":61.2,"nI_2025":17.1,"nIII_2025":24.1,"meta_promedio":64.9,"meta_nI":12.1,"meta_nIII":27.4},{"asignatura":"Lectura","nivel":"5° Basico","ciclo":"2° Ciclo","cursos":4,"estudiantes":152,"promedio_2025":57.1,"nI_2025":22.7,"nIII_2025":19.7,"meta_promedio":61.6,"meta_nI":16.2,"meta_nIII":23.8},{"asignatura":"Lectura","nivel":"6° Basico","ciclo":"2° Ciclo","cursos":4,"estudiantes":145,"promedio_2025":58.4,"nI_2025":24.8,"nIII_2025":16.6,"meta_promedio":62.4,"meta_nI":17.6,"meta_nIII":20.2},{"asignatura":"Lectura","nivel":"7° Basico","ciclo":"2° Ciclo","cursos":4,"estudiantes":147,"promedio_2025":49.8,"nI_2025":32.0,"nIII_2025":2.0,"meta_promedio":55.8,"meta_nI":24.2,"meta_nIII":7.4},{"asignatura":"Lectura","nivel":"8° Basico","ciclo":"2° Ciclo","cursos":4,"estudiantes":150,"promedio_2025":50.8,"nI_2025":29.2,"nIII_2025":5.7,"meta_promedio":56.8,"meta_nI":22.2,"meta_nIII":11.1},{"asignatura":"Lectura","nivel":"II° Medio","ciclo":"Enseñanza Media","cursos":4,"estudiantes":127,"promedio_2025":58.1,"nI_2025":27.3,"nIII_2025":13.2,"meta_promedio":62.4,"meta_nI":20.1,"meta_nIII":17.0},{"asignatura":"Lectura","nivel":"I° Medio","ciclo":"Enseñanza Media","cursos":4,"estudiantes":134,"promedio_2025":52.5,"nI_2025":38.3,"nIII_2025":15.5,"meta_promedio":58.0,"meta_nI":29.5,"meta_nIII":20.4},{"asignatura":"Matematica","nivel":"1° Basico","ciclo":"1° Ciclo","cursos":3,"estudiantes":116,"promedio_2025":75.3,"nI_2025":0.0,"nIII_2025":0.0,"meta_promedio":77.3,"meta_nI":0.0,"meta_nIII":1.8},{"asignatura":"Matematica","nivel":"2° Basico","ciclo":"1° Ciclo","cursos":3,"estudiantes":120,"promedio_2025":78.6,"nI_2025":1.7,"nIII_2025":40.8,"meta_promedio":80.6,"meta_nI":1.7,"meta_nIII":42.6},{"asignatura":"Matematica","nivel":"3° Basico","ciclo":"1° Ciclo","cursos":3,"estudiantes":133,"promedio_2025":67.0,"nI_2025":24.9,"nIII_2025":9.0,"meta_promedio":70.4,"meta_nI":18.2,"meta_nIII":12.0},{"asignatura":"Matematica","nivel":"4° Basico","ciclo":"1° Ciclo","cursos":4,"estudiantes":160,"promedio_2025":37.5,"nI_2025":62.3,"nIII_2025":0.0,"meta_promedio":45.5,"meta_nI":51.3,"meta_nIII":7.2},{"asignatura":"Matematica","nivel":"5° Basico","ciclo":"2° Ciclo","cursos":4,"estudiantes":164,"promedio_2025":42.6,"nI_2025":61.9,"nIII_2025":0.6,"meta_promedio":50.6,"meta_nI":50.4,"meta_nIII":7.8},{"asignatura":"Matematica","nivel":"6° Basico","ciclo":"2° Ciclo","cursos":4,"estudiantes":155,"promedio_2025":39.0,"nI_2025":67.1,"nIII_2025":0.6,"meta_promedio":47.0,"meta_nI":55.1,"meta_nIII":7.8},{"asignatura":"Matematica","nivel":"7° Basico","ciclo":"2° Ciclo","cursos":4,"estudiantes":160,"promedio_2025":33.2,"nI_2025":73.0,"nIII_2025":0.6,"meta_promedio":41.2,"meta_nI":61.5,"meta_nIII":7.8},{"asignatura":"Matematica","nivel":"8° Basico","ciclo":"2° Ciclo","cursos":4,"estudiantes":154,"promedio_2025":29.8,"nI_2025":85.5,"nIII_2025":0.0,"meta_promedio":37.8,"meta_nI":73.5,"meta_nIII":7.2},{"asignatura":"Matematica","nivel":"II° Medio","ciclo":"Enseñanza Media","cursos":4,"estudiantes":147,"promedio_2025":33.3,"nI_2025":70.3,"nIII_2025":2.4,"meta_promedio":40.8,"meta_nI":59.8,"meta_nIII":9.2},{"asignatura":"Matematica","nivel":"I° Medio","ciclo":"Enseñanza Media","cursos":4,"estudiantes":155,"promedio_2025":25.6,"nI_2025":90.8,"nIII_2025":0.0,"meta_promedio":33.6,"meta_nI":78.8,"meta_nIII":7.2}],"cursos":[{"asignatura":"Lectura","nivel":"1° Basico","curso":"1 A","ciclo":"1° Ciclo","estudiantes":41,"promedio_pct":null,"nI":0,"nII":0,"nIII":0,"nI_pct":0.0,"nII_pct":0.0,"nIII_pct":0.0,"meta_promedio_pct":null,"meta_nI_pct":0.0,"meta_nIII_pct":null},{"asignatura":"Lectura","nivel":"1° Basico","curso":"1 B","ciclo":"1° Ciclo","estudiantes":44,"promedio_pct":null,"nI":0,"nII":0,"nIII":0,"nI_pct":0.0,"nII_pct":0.0,"nIII_pct":0.0,"meta_promedio_pct":null,"meta_nI_pct":0.0,"meta_nIII_pct":null},{"asignatura":"Lectura","nivel":"1° Basico","curso":"1 C","ciclo":"1° Ciclo","estudiantes":35,"promedio_pct":null,"nI":0,"nII":0,"nIII":0,"nI_pct":0.0,"nII_pct":0.0,"nIII_pct":0.0,"meta_promedio_pct":null,"meta_nI_pct":0.0,"meta_nIII_pct":null},{"asignatura":"Lectura","nivel":"2° Basico","curso":"2 A","ciclo":"1° Ciclo","estudiantes":39,"promedio_pct":57.4,"nI":6,"nII":21,"nIII":12,"nI_pct":15.4,"nII_pct":53.8,"nIII_pct":30.8,"meta_promedio_pct":61.4,"meta_nI_pct":10.4,"meta_nIII_pct":34.4},{"asignatura":"Lectura","nivel":"2° Basico","curso":"2 B","ciclo":"1° Ciclo","estudiantes":39,"promedio_pct":61.1,"nI":3,"nII":20,"nIII":16,"nI_pct":7.7,"nII_pct":51.3,"nIII_pct":41.0,"meta_promedio_pct":65.1,"meta_nI_pct":5.0,"meta_nIII_pct":44.6},{"asignatura":"Lectura","nivel":"2° Basico","curso":"2 C","ciclo":"1° Ciclo","estudiantes":42,"promedio_pct":52.9,"nI":8,"nII":20,"nIII":14,"nI_pct":19.0,"nII_pct":47.6,"nIII_pct":33.3,"meta_promedio_pct":58.9,"meta_nI_pct":14.0,"meta_nIII_pct":38.7},{"asignatura":"Lectura","nivel":"3° Basico","curso":"3 A","ciclo":"1° Ciclo","estudiantes":44,"promedio_pct":66.7,"nI":3,"nII":28,"nIII":13,"nI_pct":6.8,"nII_pct":63.6,"nIII_pct":29.5,"meta_promedio_pct":69.7,"meta_nI_pct":5.0,"meta_nIII_pct":32.2},{"asignatura":"Lectura","nivel":"3° Basico","curso":"3 B","ciclo":"1° Ciclo","estudiantes":45,"promedio_pct":75.5,"nI":1,"nII":25,"nIII":19,"nI_pct":2.2,"nII_pct":55.6,"nIII_pct":42.2,"meta_promedio_pct":78.5,"meta_nI_pct":2.2,"meta_nIII_pct":44.9},{"asignatura":"Lectura","nivel":"3° Basico","curso":"3 C","ciclo":"1° Ciclo","estudiantes":44,"promedio_pct":63.8,"nI":2,"nII":28,"nIII":14,"nI_pct":4.5,"nII_pct":63.6,"nIII_pct":31.8,"meta_promedio_pct":67.8,"meta_nI_pct":4.5,"meta_nIII_pct":35.4},{"asignatura":"Lectura","nivel":"4° Basico","curso":"4 A","ciclo":"1° Ciclo","estudiantes":41,"promedio_pct":59.9,"nI":4,"nII":28,"nIII":9,"nI_pct":9.8,"nII_pct":68.3,"nIII_pct":22.0,"meta_promedio_pct":63.9,"meta_nI_pct":5.0,"meta_nIII_pct":25.6},{"asignatura":"Lectura","nivel":"4° Basico","curso":"4 B","ciclo":"1° Ciclo","estudiantes":43,"promedio_pct":55.5,"nI":9,"nII":26,"nIII":8,"nI_pct":20.9,"nII_pct":60.5,"nIII_pct":18.6,"meta_promedio_pct":59.5,"meta_nI_pct":15.9,"meta_nIII_pct":22.2},{"asignatura":"Lectura","nivel":"4° Basico","curso":"4 C","ciclo":"1° Ciclo","estudiantes":43,"promedio_pct":63.3,"nI":9,"nII":22,"nIII":12,"nI_pct":20.9,"nII_pct":51.2,"nIII_pct":27.9,"meta_promedio_pct":67.3,"meta_nI_pct":15.9,"meta_nIII_pct":31.5},{"asignatura":"Lectura","nivel":"4° Basico","curso":"4 D","ciclo":"1° Ciclo","estudiantes":36,"promedio_pct":66.0,"nI":6,"nII":20,"nIII":10,"nI_pct":16.7,"nII_pct":55.6,"nIII_pct":27.8,"meta_promedio_pct":69.0,"meta_nI_pct":11.7,"meta_nIII_pct":30.5},{"asignatura":"Lectura","nivel":"5° Basico","curso":"5 A","ciclo":"2° Ciclo","estudiantes":38,"promedio_pct":54.4,"nI":10,"nII":23,"nIII":5,"nI_pct":26.3,"nII_pct":60.5,"nIII_pct":13.2,"meta_promedio_pct":60.4,"meta_nI_pct":18.3,"meta_nIII_pct":18.6},{"asignatura":"Lectura","nivel":"5° Basico","curso":"5 B","ciclo":"2° Ciclo","estudiantes":33,"promedio_pct":60.6,"nI":5,"nII":21,"nIII":7,"nI_pct":15.2,"nII_pct":63.6,"nIII_pct":21.2,"meta_promedio_pct":64.6,"meta_nI_pct":10.2,"meta_nIII_pct":24.8},{"asignatura":"Lectura","nivel":"5° Basico","curso":"5 C","ciclo":"2° Ciclo","estudiantes":40,"promedio_pct":56.6,"nI":9,"nII":23,"nIII":8,"nI_pct":22.5,"nII_pct":57.5,"nIII_pct":20.0,"meta_promedio_pct":60.6,"meta_nI_pct":17.5,"meta_nIII_pct":23.6},{"asignatura":"Lectura","nivel":"5° Basico","curso":"5 D","ciclo":"2° Ciclo","estudiantes":41,"promedio_pct":56.7,"nI":11,"nII":20,"nIII":10,"nI_pct":26.8,"nII_pct":48.8,"nIII_pct":24.4,"meta_promedio_pct":60.7,"meta_nI_pct":18.8,"meta_nIII_pct":28.0},{"asignatura":"Lectura","nivel":"6° Basico","curso":"6 A","ciclo":"2° Ciclo","estudiantes":36,"promedio_pct":55.7,"nI":11,"nII":23,"nIII":2,"nI_pct":30.6,"nII_pct":63.9,"nIII_pct":5.6,"meta_promedio_pct":59.7,"meta_nI_pct":22.6,"meta_nIII_pct":9.2},{"asignatura":"Lectura","nivel":"6° Basico","curso":"6 B","ciclo":"2° Ciclo","estudiantes":36,"promedio_pct":59.3,"nI":5,"nII":24,"nIII":7,"nI_pct":13.9,"nII_pct":66.7,"nIII_pct":19.4,"meta_promedio_pct":63.3,"meta_nI_pct":8.9,"meta_nIII_pct":23.0},{"asignatura":"Lectura","nivel":"6° Basico","curso":"6 C","ciclo":"2° Ciclo","estudiantes":38,"promedio_pct":59.8,"nI":10,"nII":21,"nIII":7,"nI_pct":26.3,"nII_pct":55.3,"nIII_pct":18.4,"meta_promedio_pct":63.8,"meta_nI_pct":18.3,"meta_nIII_pct":22.0},{"asignatura":"Lectura","nivel":"6° Basico","curso":"6 D","ciclo":"2° Ciclo","estudiantes":35,"promedio_pct":58.8,"nI":10,"nII":17,"nIII":8,"nI_pct":28.6,"nII_pct":48.6,"nIII_pct":22.9,"meta_promedio_pct":62.8,"meta_nI_pct":20.6,"meta_nIII_pct":26.5},{"asignatura":"Lectura","nivel":"7° Basico","curso":"7 A","ciclo":"2° Ciclo","estudiantes":38,"promedio_pct":53.9,"nI":6,"nII":30,"nIII":2,"nI_pct":15.8,"nII_pct":78.9,"nIII_pct":5.3,"meta_promedio_pct":59.9,"meta_nI_pct":10.8,"meta_nIII_pct":10.7},{"asignatura":"Lectura","nivel":"7° Basico","curso":"7 B","ciclo":"2° Ciclo","estudiantes":35,"promedio_pct":49.2,"nI":11,"nII":24,"nIII":0,"nI_pct":31.4,"nII_pct":68.6,"nIII_pct":0.0,"meta_promedio_pct":55.2,"meta_nI_pct":23.4,"meta_nIII_pct":5.4},{"asignatura":"Lectura","nivel":"7° Basico","curso":"7 C","ciclo":"2° Ciclo","estudiantes":39,"promedio_pct":46.6,"nI":17,"nII":21,"nIII":1,"nI_pct":43.6,"nII_pct":53.8,"nIII_pct":2.6,"meta_promedio_pct":52.6,"meta_nI_pct":33.6,"meta_nIII_pct":8.0},{"asignatura":"Lectura","nivel":"7° Basico","curso":"7 D","ciclo":"2° Ciclo","estudiantes":35,"promedio_pct":49.3,"nI":13,"nII":22,"nIII":0,"nI_pct":37.1,"nII_pct":62.9,"nIII_pct":0.0,"meta_promedio_pct":55.3,"meta_nI_pct":29.1,"meta_nIII_pct":5.4},{"asignatura":"Lectura","nivel":"8° Basico","curso":"8 A","ciclo":"2° Ciclo","estudiantes":40,"promedio_pct":58.9,"nI":8,"nII":26,"nIII":6,"nI_pct":20.0,"nII_pct":65.0,"nIII_pct":15.0,"meta_promedio_pct":62.9,"meta_nI_pct":15.0,"meta_nIII_pct":18.6},{"asignatura":"Lectura","nivel":"8° Basico","curso":"8 B","ciclo":"2° Ciclo","estudiantes":32,"promedio_pct":36.3,"nI":17,"nII":15,"nIII":0,"nI_pct":53.1,"nII_pct":46.9,"nIII_pct":0.0,"meta_promedio_pct":44.3,"meta_nI_pct":43.1,"meta_nIII_pct":7.2},{"asignatura":"Lectura","nivel":"8° Basico","curso":"8 C","ciclo":"2° Ciclo","estudiantes":40,"promedio_pct":54.7,"nI":6,"nII":33,"nIII":1,"nI_pct":15.0,"nII_pct":82.5,"nIII_pct":2.5,"meta_promedio_pct":60.7,"meta_nI_pct":10.0,"meta_nIII_pct":7.9},{"asignatura":"Lectura","nivel":"8° Basico","curso":"8 D","ciclo":"2° Ciclo","estudiantes":38,"promedio_pct":53.3,"nI":11,"nII":25,"nIII":2,"nI_pct":28.9,"nII_pct":65.8,"nIII_pct":5.3,"meta_promedio_pct":59.3,"meta_nI_pct":20.9,"meta_nIII_pct":10.7},{"asignatura":"Lectura","nivel":"II° Medio","curso":"II A (HC-310)","ciclo":"Enseñanza Media","estudiantes":29,"promedio_pct":56.0,"nI":8,"nII":21,"nIII":0,"nI_pct":27.6,"nII_pct":72.4,"nIII_pct":0.0,"meta_promedio_pct":60.0,"meta_nI_pct":19.6,"meta_nIII_pct":3.6},{"asignatura":"Lectura","nivel":"II° Medio","curso":"II B (HC-310)","ciclo":"Enseñanza Media","estudiantes":31,"promedio_pct":66.0,"nI":7,"nII":14,"nIII":10,"nI_pct":22.6,"nII_pct":45.2,"nIII_pct":32.3,"meta_promedio_pct":69.0,"meta_nI_pct":17.6,"meta_nIII_pct":35.0},{"asignatura":"Lectura","nivel":"II° Medio","curso":"II C (HC-310)","ciclo":"Enseñanza Media","estudiantes":36,"promedio_pct":54.7,"nI":12,"nII":19,"nIII":5,"nI_pct":33.3,"nII_pct":52.8,"nIII_pct":13.9,"meta_promedio_pct":60.7,"meta_nI_pct":25.3,"meta_nIII_pct":19.3},{"asignatura":"Lectura","nivel":"II° Medio","curso":"II D (HC-310)","ciclo":"Enseñanza Media","estudiantes":31,"promedio_pct":55.7,"nI":8,"nII":21,"nIII":2,"nI_pct":25.8,"nII_pct":67.7,"nIII_pct":6.5,"meta_promedio_pct":59.7,"meta_nI_pct":17.8,"meta_nIII_pct":10.1},{"asignatura":"Lectura","nivel":"I° Medio","curso":"I A (HC-310)","ciclo":"Enseñanza Media","estudiantes":35,"promedio_pct":53.1,"nI":14,"nII":15,"nIII":6,"nI_pct":40.0,"nII_pct":42.9,"nIII_pct":17.1,"meta_promedio_pct":59.1,"meta_nI_pct":30.0,"meta_nIII_pct":22.5},{"asignatura":"Lectura","nivel":"I° Medio","curso":"I B (HC-310)","ciclo":"Enseñanza Media","estudiantes":29,"promedio_pct":54.0,"nI":13,"nII":10,"nIII":6,"nI_pct":44.8,"nII_pct":34.5,"nIII_pct":20.7,"meta_promedio_pct":60.0,"meta_nI_pct":34.8,"meta_nIII_pct":26.1},{"asignatura":"Lectura","nivel":"I° Medio","curso":"I C (HC-310)","ciclo":"Enseñanza Media","estudiantes":30,"promedio_pct":56.1,"nI":7,"nII":18,"nIII":5,"nI_pct":23.3,"nII_pct":60.0,"nIII_pct":16.7,"meta_promedio_pct":60.1,"meta_nI_pct":18.3,"meta_nIII_pct":20.3},{"asignatura":"Lectura","nivel":"I° Medio","curso":"I D (HC-310)","ciclo":"Enseñanza Media","estudiantes":40,"promedio_pct":46.8,"nI":18,"nII":19,"nIII":3,"nI_pct":45.0,"nII_pct":47.5,"nIII_pct":7.5,"meta_promedio_pct":52.8,"meta_nI_pct":35.0,"meta_nIII_pct":12.9},{"asignatura":"Matematica","nivel":"1° Basico","curso":"1 A","ciclo":"1° Ciclo","estudiantes":43,"promedio_pct":66.1,"nI":0,"nII":0,"nIII":0,"nI_pct":0.0,"nII_pct":0.0,"nIII_pct":0.0,"meta_promedio_pct":69.1,"meta_nI_pct":0.0,"meta_nIII_pct":2.7},{"asignatura":"Matematica","nivel":"1° Basico","curso":"1 B","ciclo":"1° Ciclo","estudiantes":38,"promedio_pct":73.6,"nI":0,"nII":0,"nIII":0,"nI_pct":0.0,"nII_pct":0.0,"nIII_pct":0.0,"meta_promedio_pct":76.6,"meta_nI_pct":0.0,"meta_nIII_pct":2.7},{"asignatura":"Matematica","nivel":"1° Basico","curso":"1 C","ciclo":"1° Ciclo","estudiantes":35,"promedio_pct":86.1,"nI":0,"nII":0,"nIII":0,"nI_pct":0.0,"nII_pct":0.0,"nIII_pct":0.0,"meta_promedio_pct":86.1,"meta_nI_pct":0.0,"meta_nIII_pct":0.0},{"asignatura":"Matematica","nivel":"2° Basico","curso":"2 A","ciclo":"1° Ciclo","estudiantes":39,"promedio_pct":88.4,"nI":0,"nII":12,"nIII":27,"nI_pct":0.0,"nII_pct":30.8,"nIII_pct":69.2,"meta_promedio_pct":88.4,"meta_nI_pct":0.0,"meta_nIII_pct":69.2},{"asignatura":"Matematica","nivel":"2° Basico","curso":"2 B","ciclo":"1° Ciclo","estudiantes":39,"promedio_pct":72.4,"nI":1,"nII":33,"nIII":5,"nI_pct":2.6,"nII_pct":84.6,"nIII_pct":12.8,"meta_promedio_pct":75.4,"meta_nI_pct":2.6,"meta_nIII_pct":15.5},{"asignatura":"Matematica","nivel":"2° Basico","curso":"2 C","ciclo":"1° Ciclo","estudiantes":42,"promedio_pct":75.1,"nI":1,"nII":24,"nIII":17,"nI_pct":2.4,"nII_pct":57.1,"nIII_pct":40.5,"meta_promedio_pct":78.1,"meta_nI_pct":2.4,"meta_nIII_pct":43.2},{"asignatura":"Matematica","nivel":"3° Basico","curso":"3 A","ciclo":"1° Ciclo","estudiantes":44,"promedio_pct":70.9,"nI":6,"nII":33,"nIII":5,"nI_pct":13.6,"nII_pct":75.0,"nIII_pct":11.4,"meta_promedio_pct":73.9,"meta_nI_pct":8.6,"meta_nIII_pct":14.1},{"asignatura":"Matematica","nivel":"3° Basico","curso":"3 B","ciclo":"1° Ciclo","estudiantes":45,"promedio_pct":67.9,"nI":8,"nII":31,"nIII":6,"nI_pct":17.8,"nII_pct":68.9,"nIII_pct":13.3,"meta_promedio_pct":70.9,"meta_nI_pct":12.8,"meta_nIII_pct":16.0},{"asignatura":"Matematica","nivel":"3° Basico","curso":"3 C","ciclo":"1° Ciclo","estudiantes":44,"promedio_pct":62.3,"nI":19,"nII":24,"nIII":1,"nI_pct":43.2,"nII_pct":54.5,"nIII_pct":2.3,"meta_promedio_pct":66.3,"meta_nI_pct":33.2,"meta_nIII_pct":5.9},{"asignatura":"Matematica","nivel":"4° Basico","curso":"4 A","ciclo":"1° Ciclo","estudiantes":41,"promedio_pct":40.7,"nI":21,"nII":20,"nIII":0,"nI_pct":51.2,"nII_pct":48.8,"nIII_pct":0.0,"meta_promedio_pct":48.7,"meta_nI_pct":41.2,"meta_nIII_pct":7.2},{"asignatura":"Matematica","nivel":"4° Basico","curso":"4 B","ciclo":"1° Ciclo","estudiantes":44,"promedio_pct":32.8,"nI":33,"nII":11,"nIII":0,"nI_pct":75.0,"nII_pct":25.0,"nIII_pct":0.0,"meta_promedio_pct":40.8,"meta_nI_pct":63.0,"meta_nIII_pct":7.2},{"asignatura":"Matematica","nivel":"4° Basico","curso":"4 C","ciclo":"1° Ciclo","estudiantes":43,"promedio_pct":42.7,"nI":18,"nII":25,"nIII":0,"nI_pct":41.9,"nII_pct":58.1,"nIII_pct":0.0,"meta_promedio_pct":50.7,"meta_nI_pct":31.9,"meta_nIII_pct":7.2},{"asignatura":"Matematica","nivel":"4° Basico","curso":"4 D","ciclo":"1° Ciclo","estudiantes":32,"promedio_pct":33.7,"nI":26,"nII":6,"nIII":0,"nI_pct":81.2,"nII_pct":18.8,"nIII_pct":0.0,"meta_promedio_pct":41.7,"meta_nI_pct":69.2,"meta_nIII_pct":7.2},{"asignatura":"Matematica","nivel":"5° Basico","curso":"5 A","ciclo":"2° Ciclo","estudiantes":38,"promedio_pct":43.5,"nI":23,"nII":14,"nIII":1,"nI_pct":60.5,"nII_pct":36.8,"nIII_pct":2.6,"meta_promedio_pct":51.5,"meta_nI_pct":48.5,"meta_nIII_pct":9.8},{"asignatura":"Matematica","nivel":"5° Basico","curso":"5 B","ciclo":"2° Ciclo","estudiantes":41,"promedio_pct":43.4,"nI":20,"nII":21,"nIII":0,"nI_pct":48.8,"nII_pct":51.2,"nIII_pct":0.0,"meta_promedio_pct":51.4,"meta_nI_pct":38.8,"meta_nIII_pct":7.2},{"asignatura":"Matematica","nivel":"5° Basico","curso":"5 C","ciclo":"2° Ciclo","estudiantes":44,"promedio_pct":39.4,"nI":34,"nII":10,"nIII":0,"nI_pct":77.3,"nII_pct":22.7,"nIII_pct":0.0,"meta_promedio_pct":47.4,"meta_nI_pct":65.3,"meta_nIII_pct":7.2},{"asignatura":"Matematica","nivel":"5° Basico","curso":"5 D","ciclo":"2° Ciclo","estudiantes":41,"promedio_pct":44.0,"nI":25,"nII":16,"nIII":0,"nI_pct":61.0,"nII_pct":39.0,"nIII_pct":0.0,"meta_promedio_pct":52.0,"meta_nI_pct":49.0,"meta_nIII_pct":7.2},{"asignatura":"Matematica","nivel":"6° Basico","curso":"6 A","ciclo":"2° Ciclo","estudiantes":38,"promedio_pct":32.6,"nI":30,"nII":8,"nIII":0,"nI_pct":78.9,"nII_pct":21.1,"nIII_pct":0.0,"meta_promedio_pct":40.6,"meta_nI_pct":66.9,"meta_nIII_pct":7.2},{"asignatura":"Matematica","nivel":"6° Basico","curso":"6 B","ciclo":"2° Ciclo","estudiantes":38,"promedio_pct":42.0,"nI":22,"nII":16,"nIII":0,"nI_pct":57.9,"nII_pct":42.1,"nIII_pct":0.0,"meta_promedio_pct":50.0,"meta_nI_pct":45.9,"meta_nIII_pct":7.2},{"asignatura":"Matematica","nivel":"6° Basico","curso":"6 C","ciclo":"2° Ciclo","estudiantes":39,"promedio_pct":42.3,"nI":26,"nII":13,"nIII":0,"nI_pct":66.7,"nII_pct":33.3,"nIII_pct":0.0,"meta_promedio_pct":50.3,"meta_nI_pct":54.7,"meta_nIII_pct":7.2},{"asignatura":"Matematica","nivel":"6° Basico","curso":"6 D","ciclo":"2° Ciclo","estudiantes":40,"promedio_pct":39.2,"nI":26,"nII":13,"nIII":1,"nI_pct":65.0,"nII_pct":32.5,"nIII_pct":2.5,"meta_promedio_pct":47.2,"meta_nI_pct":53.0,"meta_nIII_pct":9.7},{"asignatura":"Matematica","nivel":"7° Basico","curso":"7 A","ciclo":"2° Ciclo","estudiantes":37,"promedio_pct":29.4,"nI":32,"nII":5,"nIII":0,"nI_pct":86.5,"nII_pct":13.5,"nIII_pct":0.0,"meta_promedio_pct":37.4,"meta_nI_pct":74.5,"meta_nIII_pct":7.2},{"asignatura":"Matematica","nivel":"7° Basico","curso":"7 B","ciclo":"2° Ciclo","estudiantes":38,"promedio_pct":39.0,"nI":20,"nII":17,"nIII":1,"nI_pct":52.6,"nII_pct":44.7,"nIII_pct":2.6,"meta_promedio_pct":47.0,"meta_nI_pct":42.6,"meta_nIII_pct":9.8},{"asignatura":"Matematica","nivel":"7° Basico","curso":"7 C","ciclo":"2° Ciclo","estudiantes":43,"promedio_pct":31.5,"nI":34,"nII":9,"nIII":0,"nI_pct":79.1,"nII_pct":20.9,"nIII_pct":0.0,"meta_promedio_pct":39.5,"meta_nI_pct":67.1,"meta_nIII_pct":7.2},{"asignatura":"Matematica","nivel":"7° Basico","curso":"7 D","ciclo":"2° Ciclo","estudiantes":42,"promedio_pct":33.1,"nI":31,"nII":11,"nIII":0,"nI_pct":73.8,"nII_pct":26.2,"nIII_pct":0.0,"meta_promedio_pct":41.1,"meta_nI_pct":61.8,"meta_nIII_pct":7.2},{"asignatura":"Matematica","nivel":"8° Basico","curso":"8 A","ciclo":"2° Ciclo","estudiantes":40,"promedio_pct":30.6,"nI":37,"nII":3,"nIII":0,"nI_pct":92.5,"nII_pct":7.5,"nIII_pct":0.0,"meta_promedio_pct":38.6,"meta_nI_pct":80.5,"meta_nIII_pct":7.2},{"asignatura":"Matematica","nivel":"8° Basico","curso":"8 B","ciclo":"2° Ciclo","estudiantes":33,"promedio_pct":18.0,"nI":31,"nII":2,"nIII":0,"nI_pct":93.9,"nII_pct":6.1,"nIII_pct":0.0,"meta_promedio_pct":26.0,"meta_nI_pct":81.9,"meta_nIII_pct":7.2},{"asignatura":"Matematica","nivel":"8° Basico","curso":"8 C","ciclo":"2° Ciclo","estudiantes":41,"promedio_pct":34.3,"nI":31,"nII":10,"nIII":0,"nI_pct":75.6,"nII_pct":24.4,"nIII_pct":0.0,"meta_promedio_pct":42.3,"meta_nI_pct":63.6,"meta_nIII_pct":7.2},{"asignatura":"Matematica","nivel":"8° Basico","curso":"8 D","ciclo":"2° Ciclo","estudiantes":40,"promedio_pct":36.1,"nI":32,"nII":8,"nIII":0,"nI_pct":80.0,"nII_pct":20.0,"nIII_pct":0.0,"meta_promedio_pct":44.1,"meta_nI_pct":68.0,"meta_nIII_pct":7.2},{"asignatura":"Matematica","nivel":"II° Medio","curso":"II A (HC-310)","ciclo":"Enseñanza Media","estudiantes":35,"promedio_pct":40.3,"nI":18,"nII":17,"nIII":0,"nI_pct":51.4,"nII_pct":48.6,"nIII_pct":0.0,"meta_promedio_pct":48.3,"meta_nI_pct":41.4,"meta_nIII_pct":7.2},{"asignatura":"Matematica","nivel":"II° Medio","curso":"II B (HC-310)","ciclo":"Enseñanza Media","estudiantes":31,"promedio_pct":49.1,"nI":10,"nII":18,"nIII":3,"nI_pct":32.3,"nII_pct":58.1,"nIII_pct":9.7,"meta_promedio_pct":55.1,"meta_nI_pct":24.3,"meta_nIII_pct":15.1},{"asignatura":"Matematica","nivel":"II° Medio","curso":"II C (HC-310)","ciclo":"Enseñanza Media","estudiantes":40,"promedio_pct":18.5,"nI":39,"nII":1,"nIII":0,"nI_pct":97.5,"nII_pct":2.5,"nIII_pct":0.0,"meta_promedio_pct":26.5,"meta_nI_pct":85.5,"meta_nIII_pct":7.2},{"asignatura":"Matematica","nivel":"II° Medio","curso":"II D (HC-310)","ciclo":"Enseñanza Media","estudiantes":41,"promedio_pct":25.2,"nI":41,"nII":0,"nIII":0,"nI_pct":100.0,"nII_pct":0.0,"nIII_pct":0.0,"meta_promedio_pct":33.2,"meta_nI_pct":88.0,"meta_nIII_pct":7.2},{"asignatura":"Matematica","nivel":"I° Medio","curso":"I A (HC-310)","ciclo":"Enseñanza Media","estudiantes":43,"promedio_pct":27.6,"nI":39,"nII":4,"nIII":0,"nI_pct":90.7,"nII_pct":9.3,"nIII_pct":0.0,"meta_promedio_pct":35.6,"meta_nI_pct":78.7,"meta_nIII_pct":7.2},{"asignatura":"Matematica","nivel":"I° Medio","curso":"I B (HC-310)","ciclo":"Enseñanza Media","estudiantes":38,"promedio_pct":25.4,"nI":35,"nII":3,"nIII":0,"nI_pct":92.1,"nII_pct":7.9,"nIII_pct":0.0,"meta_promedio_pct":33.4,"meta_nI_pct":80.1,"meta_nIII_pct":7.2},{"asignatura":"Matematica","nivel":"I° Medio","curso":"I C (HC-310)","ciclo":"Enseñanza Media","estudiantes":35,"promedio_pct":29.7,"nI":29,"nII":6,"nIII":0,"nI_pct":82.9,"nII_pct":17.1,"nIII_pct":0.0,"meta_promedio_pct":37.7,"meta_nI_pct":70.9,"meta_nIII_pct":7.2},{"asignatura":"Matematica","nivel":"I° Medio","curso":"I D (HC-310)","ciclo":"Enseñanza Media","estudiantes":39,"promedio_pct":19.6,"nI":38,"nII":1,"nIII":0,"nI_pct":97.4,"nII_pct":2.6,"nIII_pct":0.0,"meta_promedio_pct":27.6,"meta_nI_pct":85.4,"meta_nIII_pct":7.2}]};
 
 
-let filtro='todos', currentPage='resumen', charts={}, selLec=null, selMat=null, simceFiltro='todos', simceLecturaSort='desc', simceMatSort='desc', diaOptTab='preguntas', diaOptData=null, diaOptLoading=null, diaOptFilters={asignatura:'',nivel:'',alerta:'',q:''}, diaIntTab='preguntas', diaIntFilters={asignatura:'',nivel:'',curso:'',oa:'',habilidad:'',distractor:'',pregunta:'',q:''};
+let filtro='todos', currentPage='resumen', charts={}, selLec=null, selMat=null, simceFiltro='todos', simceLecturaSort='desc', simceMatSort='desc', cambioEstado='todos', diaOptTab='preguntas', diaOptData=null, diaOptLoading=null, diaOptFilters={asignatura:'',nivel:'',alerta:'',q:''}, diaIntTab='preguntas', diaIntFilters={asignatura:'',nivel:'',curso:'',oa:'',habilidad:'',distractor:'',pregunta:'',q:''};
 const C={lec:'#38bdf8',mat:'#f59e0b',alto:'#10b981',bajo:'#ef4444',hc:'#a78bfa',c1:'#10b981',c2:'#38bdf8',grid:'rgba(30,45,69,.6)',txt:'#6b7fa3'};
 const L40=50, L50=66.7;
 
@@ -1088,7 +1130,7 @@ function showPage(p){
   currentPage=p;
   document.querySelectorAll('.page').forEach(e=>e.classList.remove('active'));
   document.getElementById('page-'+p).classList.add('active');
-  const pages=['resumen','ranking','brecha','habilidades','ejes','prioridades','simce','comparativo','meta','diaint','diaopt','detalle'];
+  const pages=['resumen','ranking','brecha','habilidades','ejes','prioridades','simce','comparativo','meta','cambios','diaint','diaopt','detalle'];
   document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',pages[i]===p));
   renderPage(p);
   requestAnimationFrame(()=>resizeAllCharts());
@@ -1166,6 +1208,7 @@ function renderPage(p){
   else if(p==='prioridades') renderPrioridades();
   else if(p==='simce') renderSimce();
   else if(p==='meta') renderMetaIntermedia();
+  else if(p==='cambios') renderCambios();
 }
 
 function metaCycleOk(ciclo){
@@ -1194,6 +1237,97 @@ function interBestWorst(row){
   if(!entries.length) return {best:null,worst:null};
   return {best:entries[0],worst:entries[entries.length-1]};
 }
+
+function cambioInfo(delta){
+  if(delta>0) return {key:'aumenta',label:'Aumenta',icon:'↑',color:'#10b981',cls:'change-up'};
+  if(delta<0) return {key:'disminuye',label:'Disminuye',icon:'↓',color:'#ef4444',cls:'change-down'};
+  return {key:'igual',label:'Sin cambio',icon:'→',color:'#93a4bf',cls:'change-flat'};
+}
+function cambioDeltaFmt(value){
+  if(value==null || Number.isNaN(value)) return '—';
+  const n=Number(value);
+  return `${n>0?'+':''}${n.toFixed(1)} pp`;
+}
+function setCambioEstado(value){
+  cambioEstado=value;
+  ['todos','aumenta','disminuye','igual'].forEach(key=>{
+    const el=document.getElementById(`chg-f-${key}`);
+    if(el) el.classList.toggle('active',key===value);
+  });
+  if(currentPage==='cambios') renderCambios();
+}
+function renderCambios(){
+  const kpiEl=document.getElementById('chg-kpis');
+  const tableEl=document.getElementById('chg-table');
+  if(typeof DIA_INTERMEDIO_2026==='undefined'){
+    if(kpiEl) kpiEl.innerHTML='<div class="meta-note">No se pudo cargar la base de seguimiento 2026.</div>';
+    return;
+  }
+
+  const allRows=DIA_INTERMEDIO_2026.comparaciones
+    .filter(r=>metaCycleOk(r.ciclo) && r.diagnostico!=null && r.intermedio!=null && r.variacion!=null)
+    .map(r=>({...r,estado:cambioInfo(r.variacion)}));
+  const rows=cambioEstado==='todos'?allRows:allRows.filter(r=>r.estado.key===cambioEstado);
+  const areas=['Lectura','Matemática'];
+  const areaSummary=areas.map(area=>{
+    const items=allRows.filter(r=>r.area===area);
+    return {area,items,inicio:metaMean(items,'diagnostico'),intermedio:metaMean(items,'intermedio'),cambio:metaMean(items,'variacion')};
+  });
+  const up=allRows.filter(r=>r.variacion>0);
+  const down=allRows.filter(r=>r.variacion<0);
+  const flat=allRows.filter(r=>r.variacion===0);
+  const total=allRows.length;
+
+  if(kpiEl){
+    const areaCards=areaSummary.map(s=>{
+      const info=cambioInfo(s.cambio);
+      return `<div class="meta-kpi" style="border-top:3px solid ${interAreaColor(s.area)}"><div class="val" style="color:${info.color}">${cambioDeltaFmt(s.cambio)}</div><div class="lbl">Cambio promedio ${s.area}</div><div class="sub">Inicio ${metaFmt(s.inicio)} · Intermedio ${metaFmt(s.intermedio)} · ${s.items.length} cursos</div></div>`;
+    }).join('');
+    kpiEl.innerHTML=areaCards+
+      `<div class="meta-kpi" style="border-top:3px solid #10b981"><div class="val" style="color:#10b981">${up.length}</div><div class="lbl">Resultados que aumentan</div><div class="sub">${total?((up.length/total)*100).toFixed(1):'0.0'}% de ${total} resultados curso-área</div></div>`+
+      `<div class="meta-kpi" style="border-top:3px solid #ef4444"><div class="val" style="color:#ef4444">${down.length}</div><div class="lbl">Resultados que disminuyen</div><div class="sub">${flat.length} sin cambio · ${total} resultados con ambos momentos</div></div>`;
+  }
+
+  ['todos','aumenta','disminuye','igual'].forEach(key=>{
+    const el=document.getElementById(`chg-f-${key}`);
+    if(el) el.classList.toggle('active',key===cambioEstado);
+  });
+
+  kill('chg-distrib');
+  charts['chg-distrib']=new Chart(document.getElementById('ch-chg-distrib'),{
+    type:'bar',
+    data:{labels:areas,datasets:[
+      {label:'Aumenta',data:areas.map(area=>allRows.filter(r=>r.area===area&&r.variacion>0).length),backgroundColor:'rgba(16,185,129,.7)',borderColor:'#10b981',borderWidth:1,valueLabelMode:'number'},
+      {label:'Sin cambio',data:areas.map(area=>allRows.filter(r=>r.area===area&&r.variacion===0).length),backgroundColor:'rgba(107,127,163,.55)',borderColor:'#93a4bf',borderWidth:1,valueLabelMode:'number'},
+      {label:'Disminuye',data:areas.map(area=>allRows.filter(r=>r.area===area&&r.variacion<0).length),backgroundColor:'rgba(239,68,68,.7)',borderColor:'#ef4444',borderWidth:1,valueLabelMode:'number'}
+    ]},
+    options:{...CD,scales:{x:{...CD.scales.x,stacked:true},y:{...CD.scales.y,stacked:true,min:0,max:undefined,ticks:{...CD.scales.y.ticks,precision:0}}},plugins:{...CD.plugins,tooltip:{...CD.plugins.tooltip,callbacks:{label:ctx=>` ${ctx.dataset.label}: ${ctx.raw} resultados curso-área`}}}}
+  });
+
+  const cycles=['1° Ciclo','2° Ciclo','Ens. Media'].filter(c=>allRows.some(r=>metaCycleOk(r.ciclo)&&((c==='Ens. Media'&&(r.ciclo==='Ens. Media'||r.ciclo==='Enseñanza Media'))||r.ciclo===c)));
+  const cycleRows=(area,cycle)=>allRows.filter(r=>r.area===area&&((cycle==='Ens. Media'&&(r.ciclo==='Ens. Media'||r.ciclo==='Enseñanza Media'))||r.ciclo===cycle));
+  const cycleVals=areas.flatMap(area=>cycles.map(cycle=>metaMean(cycleRows(area,cycle),'variacion'))).filter(v=>v!=null);
+  const limit=Math.max(5,Math.ceil(Math.max(...cycleVals.map(v=>Math.abs(v)),5)/5)*5);
+  kill('chg-ciclo');
+  charts['chg-ciclo']=new Chart(document.getElementById('ch-chg-ciclo'),{
+    type:'bar',
+    data:{labels:cycles,datasets:areas.map(area=>({label:area,data:cycles.map(cycle=>metaMean(cycleRows(area,cycle),'variacion')),backgroundColor:interAreaColor(area)+'88',borderColor:interAreaColor(area),borderWidth:2,borderRadius:4,valueLabelMode:'number'}))},
+    options:{...CD,scales:{x:CD.scales.x,y:{...CD.scales.y,min:-limit,max:limit,ticks:{...CD.scales.y.ticks,callback:v=>`${v} pp`}}},plugins:{...CD.plugins,tooltip:{...CD.plugins.tooltip,callbacks:{label:ctx=>` ${ctx.dataset.label}: ${cambioDeltaFmt(ctx.raw)}`}}}}
+  });
+
+  const listHtml=(items,empty)=>items.length?items.map(r=>`<div class="cmp-item"><div><b>${r.area} · ${r.curso}</b><div class="muted">Inicio ${metaFmt(r.diagnostico)} · Intermedio ${metaFmt(r.intermedio)} · ${r.ciclo}</div></div><span class="cmp-badge ${r.estado.cls}">${r.estado.icon} ${cambioDeltaFmt(r.variacion)}</span></div>`).join(''):`<div class="meta-note">${empty}</div>`;
+  const upEl=document.getElementById('chg-up');
+  const downEl=document.getElementById('chg-down');
+  if(upEl) upEl.innerHTML=listHtml([...up].sort((a,b)=>b.variacion-a.variacion).slice(0,6),'No se observaron aumentos para el filtro actual.');
+  if(downEl) downEl.innerHTML=listHtml([...down].sort((a,b)=>a.variacion-b.variacion).slice(0,6),'No se observaron disminuciones para el filtro actual.');
+
+  if(tableEl){
+    const order={"1":1,"2":2,"3":3,"4":4,"5":5,"6":6,"7":7,"8":8,"I":9,"II":10};
+    const sorted=[...rows].sort((a,b)=>(order[a.nivel]||99)-(order[b.nivel]||99)||a.letra.localeCompare(b.letra,'es')||a.area.localeCompare(b.area,'es'));
+    tableEl.innerHTML=sorted.length?`<table class="ranking-table"><thead><tr><th>Área</th><th>Curso</th><th>Ciclo</th><th>Inicio</th><th>Intermedio</th><th>Cambio</th><th>Estado</th></tr></thead><tbody>${sorted.map(r=>`<tr><td>${r.area}</td><td class="rank-curso">${r.curso}</td><td>${r.ciclo}</td><td>${metaFmt(r.diagnostico)}</td><td style="color:${cPromSafe(r.intermedio)};font-weight:800">${metaFmt(r.intermedio)}</td><td class="change-delta" style="color:${r.estado.color}">${cambioDeltaFmt(r.variacion)}</td><td><span class="cmp-badge ${r.estado.cls}">${r.estado.icon} ${r.estado.label}</span></td></tr>`).join('')}</tbody></table>`:`<div class="meta-note" style="padding:12px">No hay resultados en este estado para el filtro seleccionado.</div>`;
+  }
+}
+
 function renderMetaIntermedia(){
   if(typeof DIA_INTERMEDIO_2026==='undefined'){
     const target=document.getElementById('meta-kpis');
@@ -3370,7 +3504,7 @@ function stabilizeChartForExport(ch){
 
 async function exportPNGs(){
   const prevPage=currentPage;
-  const pages=['resumen','ranking','brecha','habilidades','ejes','prioridades','simce','comparativo','diaopt','detalle'];
+  const pages=['resumen','ranking','brecha','habilidades','ejes','prioridades','simce','comparativo','meta','cambios','diaopt','detalle'];
   const pause=()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
   const sleep=(ms)=>new Promise(r=>setTimeout(r,ms));
   const slug=v=>String(v||'grafico')
@@ -3464,7 +3598,7 @@ async function exportPNGs(){
 
 async function exportSVGs(){
   const prevPage=currentPage;
-  const pages=['resumen','ranking','brecha','habilidades','ejes','prioridades','simce','comparativo','diaopt','detalle'];
+  const pages=['resumen','ranking','brecha','habilidades','ejes','prioridades','simce','comparativo','meta','cambios','diaopt','detalle'];
   const pause=()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
   const sleep=(ms)=>new Promise(r=>setTimeout(r,ms));
   const slug=v=>String(v||'grafico')
